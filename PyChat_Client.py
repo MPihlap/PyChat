@@ -64,7 +64,7 @@ def menu():
 
 
 s = socket()
-serv = "192.168.1.132"
+serv = "192.168.1.234"
 host = gethostname()
 print(host)
 port = 12345
@@ -79,11 +79,14 @@ def uustuba(raam, nimi, nupuraam):
     nimiraam=Frame()
     nimiraam.grid(row=2, column=0)
 
-    nimitekst=ttk.Label(nimiraam, text="Sisesta toa nimi:")
+    nimitekst=ttk.Label(nimiraam, text="Sisesta toa nimi: ")
     nimikast=ttk.Entry(nimiraam)
+    niminupp=ttk.Button(raam, text="Sisene", command=lambda: func("<Return>"))
 
-    nimitekst.grid(row=2, column=0, sticky=(W))
-    nimikast.grid(row=2, column=1, sticky=(W))
+
+    nimitekst.grid(row=1, column=0, sticky=(W), padx=5, pady=2)
+    nimikast.grid(row=2, column=0, sticky=(W), padx=5, pady=5)
+    niminupp.grid(row=2, column=1, padx=5, sticky=(S), pady=5)
 
 
     def func(event):
@@ -106,7 +109,7 @@ def uustuba(raam, nimi, nupuraam):
                         print(a)
                         sisendkast.configure(state="normal")
                         textbox.configure(state="normal")
-                        if kasutajanimi in a[0:len(kasutajanimi)]:
+                        if kasutajanimi == a[0:len(kasutajanimi)] and a[len(kasutajanimi)]==":":
                             textbox.insert(INSERT, a, ("BOLD"))
                         else:
                             textbox.insert(INSERT, a)
@@ -138,6 +141,7 @@ def uustuba(raam, nimi, nupuraam):
             try:
                 while nimiraam.winfo_exists()==1:
                     nimiraam.destroy()
+                niminupp.destroy()
                 poletuba_silt.destroy()
             except NameError:
                 pass
@@ -196,13 +200,13 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
         toanimed.grid(row=1 ,column=0)
 
         nimitekst = ttk.Label(nimiraam, text="Sisesta toa nimi, millega soovid liituda:")
-        nimitekst.grid(row=2, column=0)
+        nimitekst.grid(row=2, column=0, padx=5, pady=2)
 
-        toakast = ttk.Entry(nimiraam)
-        toakast.grid(row=3, column=0, sticky=(W))
+        toakast = ttk.Entry(nimiraam, width=35)
+        toakast.grid(row=3, column=0, padx=5, pady=2)
 
-
-
+        niminupp = ttk.Button(raam, text="Sisene", command=lambda: func("<Return>"))
+        niminupp.grid(row=3, column=0, padx=5,pady=1)
 
     def func(event):
         tuba=toakast.get()
@@ -227,7 +231,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
                     print(a)
                     sisendkast.configure(state="normal")
                     textbox.configure(state="normal")
-                    if kasutajanimi in a[0:len(kasutajanimi)]:
+                    if kasutajanimi == a[0:len(kasutajanimi)] and a[len(kasutajanimi)] == ":":
                         textbox.insert(INSERT, a, ("BOLD"))
                     else:
                         textbox.insert(INSERT, a)
@@ -257,6 +261,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
             textbox.see("end")
 
         nupuraam.destroy()
+        niminupp.destroy()
         nimiraam.destroy()
 
         tekstiraam = Frame()

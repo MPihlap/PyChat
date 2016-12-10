@@ -64,7 +64,7 @@ def menu():
 
 
 s = socket()
-serv = "172.19.19.71"
+serv = "192.168.1.132"
 host = gethostname()
 print(host)
 port = 12345
@@ -85,10 +85,9 @@ def uustuba(raam, nimi, nupuraam):
     nimitekst.grid(row=2, column=0, sticky=(W))
     nimikast.grid(row=2, column=1, sticky=(W))
 
+
     def func(event):
-
         serv_nimi=nimikast.get()
-
         if len(serv_nimi)!=0:
             server.send(bytes("y", "utf-8"))  # Saadan vastuse, kas tahan või ei taha teha tuba
             server.send(bytes(serv_nimi, "utf-8"))  # Saadan nime
@@ -102,16 +101,27 @@ def uustuba(raam, nimi, nupuraam):
                     serv_räägib = select([cd], [], [], 0.1)
                     if serv_räägib[0]:
                         a = cd.recv(1024).decode("utf-8")
+                        textbox.tag_configure("BOLD",  background="#F3F6FA")
+
+                        print(a)
+                        sisendkast.configure(state="normal")
                         textbox.configure(state="normal")
-                        textbox.insert(INSERT, a)
+                        if kasutajanimi in a[0:len(kasutajanimi)]:
+                            textbox.insert(INSERT, a, ("BOLD"))
+                        else:
+                            textbox.insert(INSERT, a)
+
                         #textbox.insert(INSERT, nimi + ":" + " " + a)
                         textbox.insert(END, "\n")
                         textbox.configure(state="disabled")
-                        clear_text(sisendkast)
+                        textbox.see("end")
 
             thread1 = Thread(target=lambda:loe(cd))
             thread1.daemon = True
             thread1.start()
+
+            def clear_text(entry):
+                entry.delete("1.0", END)
 
             def kirjuta(cd):
                 a=sisendkast.get("1.0","end-1c")
@@ -120,14 +130,14 @@ def uustuba(raam, nimi, nupuraam):
                 while True:
                     cd.send(bytes(a, "utf-8"))
                     break
-
-                def clear_text(entry):
-                    entry.delete("1.0", END)
                 clear_text(sisendkast)
-                sisendkast.delete("1.0", END)
+                sisendkast.configure(state="disabled")
+                textbox.see("end")
+
+
             try:
-                nimiraam.destroy()
-                nupuraam.destroy()
+                while nimiraam.winfo_exists()==1:
+                    nimiraam.destroy()
                 poletuba_silt.destroy()
             except NameError:
                 pass
@@ -145,6 +155,7 @@ def uustuba(raam, nimi, nupuraam):
             sisendkast=Text(tekstiraam, height=5, width=50, padx=5)
             sisendkast.grid(row=1, column=0)
             sisendkast.bind('<Return>', lambda event: kirjuta(cd))
+
 
 
             sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(cd))
@@ -173,6 +184,8 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
         uustuba(raam,kasutajanimi, nupuraam)
     else:
         server.send(bytes("n", "utf-8"))
+        nupuraam.destroy()
+
         nimiraam = Frame()
         nimiraam.grid(row=2, column=0)
 
@@ -208,12 +221,21 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
             while True:
                 serv_räägib = select([cd], [], [], 0.1)
                 if serv_räägib[0]:
-                    a=cd.recv(1024).decode("utf-8")
+                    a = cd.recv(1024).decode("utf-8")
+                    textbox.tag_configure("BOLD",  background="#F3F6FA")
+
+                    print(a)
+                    sisendkast.configure(state="normal")
                     textbox.configure(state="normal")
-                    textbox.insert(INSERT,a)
-                    #textbox.insert(INSERT, nimi + ":" + " " + a)
+                    if kasutajanimi in a[0:len(kasutajanimi)]:
+                        textbox.insert(INSERT, a, ("BOLD"))
+                    else:
+                        textbox.insert(INSERT, a)
+
+                    # textbox.insert(INSERT, nimi + ":" + " " + a)
                     textbox.insert(END, "\n")
                     textbox.configure(state="disabled")
+                    textbox.see("end")
 
         #thread1 = Thread(target=lambda:loe(cd))
         #thread1.daemon = True
@@ -231,7 +253,8 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
                 entry.delete("1.0", END)
 
             clear_text(sisendkast)
-            sisendkast.delete("1.0", END)
+            sisendkast.configure(state="disabled")
+            textbox.see("end")
 
         nupuraam.destroy()
         nimiraam.destroy()

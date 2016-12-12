@@ -12,8 +12,6 @@ def sulgemine():
         sys.exit()
 
 
-def clear_text(entry):
-    entry.delete(1.0,END)
 def menu():
     #global kasutajanimi
     #kasutajanimi = ""
@@ -104,7 +102,7 @@ def uustuba(raam, nimi, nupuraam):
                     serv_räägib = select([cd], [], [], 0.1)
                     if serv_räägib[0]:
                         a = cd.recv(1024).decode("utf-8")
-                        textbox.tag_configure("BOLD",  background="#F3F6FA")
+                        textbox.tag_configure("BOLD",  background="#d1e4ff")
 
                         print(a)
                         sisendkast.configure(state="normal")
@@ -150,7 +148,7 @@ def uustuba(raam, nimi, nupuraam):
 
             tekstiraam.grid(row=3, column=0)
 
-            textbox=Text(tekstiraam, height=10, width=50, padx=5, state="disabled")
+            textbox=Text(tekstiraam, height=10, width=50, padx=5, state="disabled", wrap=WORD)
             textbox.grid(row=0, column= 0)
 
             scrollbar=Scrollbar(tekstiraam, command=textbox.yview)
@@ -226,7 +224,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
                 serv_räägib = select([cd], [], [], 0.1)
                 if serv_räägib[0]:
                     a = cd.recv(1024).decode("utf-8")
-                    textbox.tag_configure("BOLD",  background="#F3F6FA")
+                    textbox.tag_configure("BOLD",  background="#d1e4ff")
 
                     print(a)
                     sisendkast.configure(state="normal")
@@ -268,7 +266,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
 
         tekstiraam.grid(row=3, column=0)
 
-        textbox = Text(tekstiraam, height=10, width=50, padx=5, state="disabled")
+        textbox = Text(tekstiraam, height=10, width=50, padx=5, state="disabled", wrap=WORD)
         textbox.grid(row=0, column=0)
 
         scrollbar = Scrollbar(tekstiraam, command=textbox.yview)

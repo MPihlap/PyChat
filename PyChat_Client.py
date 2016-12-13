@@ -62,7 +62,7 @@ def menu():
 
 
 s = socket()
-serv = "192.168.1.234"
+serv = "172.19.17.200"
 host = gethostname()
 print(host)
 port = 12345
@@ -116,6 +116,10 @@ def uustuba(raam, nimi, nupuraam):
                         textbox.insert(END, "\n")
                         textbox.configure(state="disabled")
                         textbox.see("end")
+                    if sisendkast.cget("state")=="disabled":
+                        sisendkast.configure(state="normal")
+
+
 
             thread1 = Thread(target=lambda:loe(cd))
             thread1.daemon = True
@@ -134,7 +138,6 @@ def uustuba(raam, nimi, nupuraam):
                 clear_text(sisendkast)
                 sisendkast.configure(state="disabled")
                 textbox.see("end")
-
 
             try:
                 while nimiraam.winfo_exists()==1:
@@ -238,6 +241,8 @@ def olemastuba(raam, server, nimi, toad, nupuraam):
                     textbox.insert(END, "\n")
                     textbox.configure(state="disabled")
                     textbox.see("end")
+                if sisendkast.cget("state") == "disabled":
+                    sisendkast.configure(state="normal")
 
         #thread1 = Thread(target=lambda:loe(cd))
         #thread1.daemon = True

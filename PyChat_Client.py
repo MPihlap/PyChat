@@ -66,7 +66,7 @@ def menu():
 
 
 s = socket()
-serv = "192.168.1.234"
+serv = "40.69.82.163"
 host = gethostname()
 port = 12345
 server = create_connection((serv, port))
@@ -114,9 +114,14 @@ def uustuba(raam, nimi, nupuraam): #juhul kui kasutaja teeb uue toa
 
                         if kasutajanimi == sõnum[0:len(kasutajanimi)] and sõnum[len(kasutajanimi)]==":": #tuvastab ära kliendipoolse kasutajanime
                             textbox.insert(INSERT, sõnum, ("BOLD"))
+
                         else:
-                            Beep(3000, 80) #teeb heli
-                            textbox.insert(INSERT, sõnum)
+                            if sisendkast == sisendkast.focus_get() or sõnum=='Tere tulemast vestlusesse "' + serv_nimi + '"': #juhul kui ei ole fokuseeritud
+                                textbox.insert(INSERT, sõnum)
+                            else:
+                                Beep(440, 150)  # teeb heli siis, kui on fokuseeritud aknale
+                                textbox.insert(INSERT, sõnum)
+
 
                         textbox.insert(END, "\n")
                         textbox.configure(state="disabled") #tagasi mitteredigeeritavaks
@@ -241,8 +246,12 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
                     if kasutajanimi == sõnum[0:len(kasutajanimi)] and sõnum[len(kasutajanimi)] == ":":
                         textbox.insert(INSERT, sõnum, ("BOLD"))
                     else:
-                        Beep(3000, 80)  # teeb heli
-                        textbox.insert(INSERT, sõnum)
+
+                        if sisendkast == sisendkast.focus_get() or sõnum == 'Tere tulemast vestlusesse "' + serv_nimi + '"': #juhul kui ei ole fokusseeritud
+                            textbox.insert(INSERT, sõnum)
+                        else:
+                            Beep(440, 150)  # teeb heli
+                            textbox.insert(INSERT, sõnum)
 
                     textbox.insert(END, "\n")
                     textbox.configure(state="disabled")

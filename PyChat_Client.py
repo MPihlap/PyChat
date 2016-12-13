@@ -62,7 +62,7 @@ def menu():
 
 
 s = socket()
-serv = "172.19.17.200"
+serv = "40.69.82.163"
 host = gethostname()
 print(host)
 port = 12345

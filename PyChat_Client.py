@@ -64,7 +64,8 @@ def menu():
 
 
 s = socket()
-serv = "172.19.19.71"
+#serv = "40.69.82.163"
+serv = "172.19.21.213"
 host = gethostname()
 print(host)
 port = 12345
@@ -109,9 +110,7 @@ def uustuba(raam, nimi, nupuraam):
                         textbox.configure(state="disabled")
                         clear_text(sisendkast)
 
-            thread1 = Thread(target=lambda:loe(cd))
-            thread1.daemon = True
-            thread1.start()
+
 
             def kirjuta(cd):
                 a=sisendkast.get("1.0","end-1c")
@@ -119,6 +118,7 @@ def uustuba(raam, nimi, nupuraam):
                 #textbox.insert(END, "\n" )
                 while True:
                     cd.send(bytes(a, "utf-8"))
+                    print("Saatsin teksti")
                     break
 
                 def clear_text(entry):
@@ -150,6 +150,9 @@ def uustuba(raam, nimi, nupuraam):
             sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(cd))
             sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
+            thread1 = Thread(target=lambda: loe(cd))
+            thread1.daemon = True
+            thread1.start()
 
 
 

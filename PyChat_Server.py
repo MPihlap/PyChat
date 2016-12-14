@@ -4,7 +4,6 @@ from threading import *
 
 
 def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
-    on_kasutaja = False
     #print("Siin ei leia",serverid)
     s = socket()
     hostname = gethostname()
@@ -18,24 +17,24 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
 
     def uus_ühendus(algatajanimi):
         (uus, addr) = s.accept()
-        on_kasutaja = True
-        if len(socketid) < 1:
-            nim = [addr,algatajanimi]
-            uus.send(bytes('Tere tulemast vestlusesse "' + servnimi + '"', "utf-8"))
-            socketid.append(uus)
-        else:
-            nimi = uus.recv(1024).decode("utf-8")
-            print("See on nimi elleroooo",nimi)
+        nimi = uus.recv(1024).decode("utf-8")
+        print("See on nimi elleroooo",nimi)
+        for i in range(len(socketid)):
+            try:
+                socketid[i].send(bytes(nimi + " liitus vestlusega!", "utf-8"))
+            except ConnectionResetError:
+                socketid[i] = "PUUDUB"
+        if "PUUDUB" in socketid:
             for i in range(len(socketid)):
+                print(socketid[i])
                 try:
-                    socketid[i].send(bytes(nimi + " liitus vestlusega!", "utf-8"))
-                except ConnectionResetError:
-                    socketid[i] = "PUUDUB"
-            if "PUUDUB" in socketid:
-                socketid.remove("PUUDUB")
-            uus.send(bytes('Tere tulemast vestlusesse "'+servnimi+'"', "utf-8"))
-            socketid.append(uus)
-            nim = [addr, nimi]
+                    if socketid[i] == "PUUDUB":
+                        del socketid[i]
+                except IndexError:
+                    pass
+        uus.send(bytes('Tere tulemast vestlusesse "'+servnimi+'"', "utf-8"))
+        socketid.append(uus)
+        nim = [addr, nimi]
         return nim
 
     def kuula(): #Thread, mis tegeleb uute ühenduste otsimisega (chatroomi sees)
@@ -44,23 +43,47 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
             ühendused.append(connection)
             print(ühendused)
 
+    (uus, addr) = s.accept() #Lisame toa looja andmed järjenditesse
+    nim = [addr, algatajanimi]
+    uus.send(bytes('Tere tulemast vestlusesse "' + servnimi + '"', "utf-8"))
+    socketid.append(uus)
+    ühendused.append(nim)
+
     kuula_thread = Thread(target=kuula)
     kuula_thread.daemon = True
     kuula_thread.start()
     while True:
-        if len(socketid) == 0 and on_kasutaja:
-            global serverid
-            print("Need on funtksiooni sees serverid elleroo",serverid)
+        if len(socketid) == 0:
             del serverid[servnimi]
-            print("The plot thickens",serverid)
+            print("Kustutasin serveri",serverid)
             break
         for i in range(len(socketid)):
-            jutustab = select([socketid[i]],[],[],0.1)
+            try:
+                jutustab = select([socketid[i]],[],[],0.1)
+            except TypeError:
+                pass
+
             if jutustab[0]:
-                tekst = socketid[i].recv(1024).decode("utf-8")
-                print(tekst)
-                for n in range(len(socketid)):
-                    socketid[n].send(bytes(ühendused[i][1]+": "+tekst,"utf-8"))
+                try:
+                    tekst = socketid[i].recv(1024).decode("utf-8")
+                    print(tekst)
+                    for n in range(len(socketid)):
+                        socketid[n].send(bytes(ühendused[i][1]+": "+tekst,"utf-8"))
+                except ConnectionResetError:
+                    socketid[i] = "PUUDUB"
+                    for n in range(len(socketid)):
+                        try:
+                            socketid[n].send(bytes(ühendused[i][1] + " lahkus vestlusest!", "utf-8"))
+                        except AttributeError:
+                            pass
+        if "PUUDUB" in socketid:
+            for n in range(len(socketid)):
+                try:
+                    if socketid[n] == "PUUDUB":
+                        del socketid[n]
+                        del ühendused[n]
+                except IndexError:
+                    pass
 
 
 
@@ -90,31 +113,34 @@ main.listen(5)
 serverid = {}
 
 def uus_klient(): #Tegeleb uute klientide otsimisega ja neile vastavalt vajadusele kas uue toa tegemisega või suunamisega
-    (uus, addr) = main.accept()
-    nimi = uus.recv(1024).decode("utf-8")
-    global serverid
-    print("See on nimi:",nimi)
-    print("Need on serverid:",serverid)
-    uus.send(bytes(str(serverid), "utf-8"))
-    print("Kas siit mööda?")
-    if uus.recv(1024).decode("utf-8") == "n" and len(serverid) >=1:
-        print(serverid)
-        #uus.send(bytes(str(serverid),"utf-8"))
-    else:
+    try:
+        (uus, addr) = main.accept()
+        nimi = uus.recv(1024).decode("utf-8")
+        global serverid
+        print("See on nimi:",nimi)
+        print("Need on serverid:",serverid)
+        uus.send(bytes(str(serverid), "utf-8"))
+        print("Kas siit mööda?")
+        try:
+            if uus.recv(1024).decode("utf-8") == "n" and len(serverid) >=1:
+                print(serverid)
+        except ConnectionAbortedError:
+            pass
+        else:
     #if uus.recv(1024).decode("utf-8") == "y": #Siin toimub dialoog [DIA], luuakse uus server
-        servnimi = uus.recv(1024).decode("utf-8")
-        print("See on servnimi elleroo",servnimi)
-        port = leia_port()
-        print(port)
-        uus.send(bytes(str(port),"utf-8"))
-        serverid[servnimi] = port
-        print("Need on serverid elleroo",serverid)
-        mainthread = Thread(target=server,args=[port,servnimi,nimi])
-        mainthread.daemon = True
-        mainthread.start()
-    #else:# Siin toimub dialoog [DIA], luuakse uus server
-     #   print(serverid)
-      #  uus.send(bytes(str(serverid),"utf-8"))
+            servnimi = uus.recv(1024).decode("utf-8")
+            if servnimi != "":
+                print("See on servnimi elleroo",servnimi)
+                port = leia_port()
+                print(port)
+                uus.send(bytes(str(port),"utf-8"))
+                serverid[servnimi] = port
+                print("Need on serverid elleroo",serverid)
+                mainthread = Thread(target=server,args=[port,servnimi,nimi])
+                mainthread.daemon = True
+                mainthread.start()
+    except ConnectionResetError:
+        pass
 
 
 

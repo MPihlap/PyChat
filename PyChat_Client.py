@@ -190,6 +190,10 @@ def uustuba(raam, nimi, nupuraam): #juhul kui kasutaja teeb uue toa
 
 
 def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab olemasoleva toaga liituda
+    toa_nimed = []
+    for i in toad:
+        toa_nimed.append(i)
+    toanimed = str(toa_nimed).strip("[]'")
 
     if len(toad)==0: #juhul kui tube pole, läheb uustoa funktsiooni
         global poletuba_silt
@@ -206,7 +210,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         toanimesilt=ttk.Label(nimiraam, text="Toa nimed:")
         toanimesilt.grid(row=0, column=0)
 
-        toanimed=ttk.Label(nimiraam, text=toad)
+        toanimed=ttk.Label(nimiraam, text=toanimed)
         toanimed.grid(row=1 ,column=0)
 
         nimitekst = ttk.Label(nimiraam, text="Sisesta toa nimi, millega soovid liituda:", font=("Helvetica", 10, "bold"))
@@ -322,7 +326,7 @@ def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
     nupuraam= Frame()
     nupuraam.grid(column=0, row=1)
     server.send(bytes(kasutajanimi,"utf-8")) #saadab kasutajanime
-    toad = eval(server.recv(1024).decode("utf-8")) #saab serverilt olemasolevad toad
+    toad = eval(server.recv(1024).decode("utf-8")) #saab serverilt olemasolevad toad koos vastavate portidega
 
     uustubanupp=ttk.Button(nupuraam, text="Tee uus tuba", command= lambda: uustuba(raam,kasutajanimi, nupuraam))
     uustubanupp.grid(column=0, row=0, padx=5, sticky=(W),pady=5 )

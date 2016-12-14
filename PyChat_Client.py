@@ -131,9 +131,6 @@ def uustuba(raam, nimi, nupuraam): #juhul kui kasutaja teeb uue toa
                     if sisendkast.cget("state")=="disabled": #juhul kui kasutaja sisestab tühja sõnumi
                         sisendkast.configure(state="normal")
 
-            thread1 = Thread(target=lambda:loe(connection)) #eraldi thread loe funktsiooni käsitlemiseks
-            thread1.daemon = True
-            thread1.start()
 
             def clear_text(entry): #kasutatakse sisendkasti sõnumi kustutamiseks
                 entry.delete("1.0", END)
@@ -179,7 +176,7 @@ def uustuba(raam, nimi, nupuraam): #juhul kui kasutaja teeb uue toa
             sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection)) #seob funktsiooni enteri klahvile
             sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
-            thread1 = Thread(target=lambda: loe(cd))
+            thread1 = Thread(target=lambda: loe(connection))
             thread1.daemon = True
             thread1.start()
 
@@ -237,7 +234,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
 
         # allpool olevad funktsioonid on sarnaselt olemas uustuba funktsiooni all, vt sealt täpsemalt seletust
 
-        def loe(connection):
+        def loe(connection,serv_nimi):
             while True:
                 serv_räägib = select([connection], [], [], 0.1)
                 if serv_räägib[0]:
@@ -304,7 +301,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
 
 
         #eraldi thread loe funktsiooni jaoks, et saaks pidevalt andmeid vastu võtta
-        thread1 = Thread(target=lambda: loe(connection))
+        thread1 = Thread(target=lambda: loe(connection,tuba))
         thread1.daemon = True
         thread1.start()
 

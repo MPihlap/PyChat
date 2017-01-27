@@ -204,7 +204,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
     if len(toad)==0: #juhul kui tube pole, läheb uustoa funktsiooni
         global poletuba_silt
         messagebox.showinfo("Error", "Paistab, et hetkel pole saadaval ühtegi tuba. Loon uue toa...")
-        uustuba(raam,kasutajanimi, nupuraam)
+        uustuba(raam,kasutajanimi, nupuraam, toad)
 
     else:
         server.send(bytes("n", "utf-8")) # Saadan vastuse, et ei taha teha tuba

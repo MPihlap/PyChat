@@ -12,8 +12,15 @@ def sulgemine(): #Kontrollib sulgemist
     if messagebox.askokcancel("Sulge", "Oled kindel, et tahad programmi sulgeda?"):
         sys.exit()
 
+def tagasi(raam, eelmine_leht):
+    try:
+        raam.destroy()
+    except:
+        pass
+    eelmine_leht()
 
 def menu():
+
     #Raami koostamine
     raam = Tk()
     raam.title("PyChat")
@@ -330,14 +337,19 @@ def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
     raam.resizable(width=False, height=False)
 
     nupuraam= Frame()
-    nupuraam.grid(column=0, row=1)
+    nupuraam.grid(column=0, row=0)
     #server.send(bytes(kasutajanimi,"utf-8")) #saadab kasutajanime
     toad = eval(server.recv(1024).decode("utf-8")) #saab serverilt olemasolevad toad koos vastavate portidega
 
     uustubanupp=ttk.Button(nupuraam, text="Tee uus tuba", command= lambda: uustuba(raam,kasutajanimi, nupuraam,toad))
     uustubanupp.grid(column=0, row=0, padx=5, sticky=(W),pady=5 )
+
     olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server,kasutajanimi,toad, nupuraam))
     olemastoanupp.grid(column=1, row=0, padx=5, sticky=(W),pady=5 )
+
+    tagasinupp=ttk.Button(raam, text="Tagasi", command= lambda:tagasi(raam, chatiruum))
+    tagasinupp.grid(column=0, row=1, padx=5, pady=5)
+
 
 
     raam.mainloop()

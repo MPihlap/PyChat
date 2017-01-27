@@ -12,11 +12,12 @@ def sulgemine(): #Kontrollib sulgemist
     if messagebox.askokcancel("Sulge", "Oled kindel, et tahad programmi sulgeda?"):
         sys.exit()
 
-def tagasi(raam, eelmine_leht):
+def tagasi(raam, eelmine_leht, server):
     try:
         raam.destroy()
     except:
         pass
+    server.send(bytes("/////TAGASI","utf-8"))
     eelmine_leht()
 
 def menu():
@@ -77,14 +78,12 @@ def menu():
 
 
 s = socket()
-serv = "192.168.43.161"
+serv = "10.0.102.77"
 #serv = "40.69.82.163"
 host = gethostname()
 port = 12345
 server = create_connection((serv, port))
 toad = []
-
-#põhjus, miks kaks eraldi funktsiooni on nii uue toa loomise jaoks kui ka olemasolevaga liitumiseks on see, et kuigi kliendi poolt paistab asi sarnane olevat, käsitleb server neid kahte juhtumit erinevalt
 
 
 def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
@@ -113,8 +112,8 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
         elif len(serv_nimi)!=0:
             server.send(bytes("y", "utf-8"))  # Saadan vastuse, kas tahan või ei taha teha tuba
             server.send(bytes(serv_nimi, "utf-8"))  # Saadan nime
-            kasutajad = server.recv(1024).decode("utf-8")
             uusport = int(server.recv(1024).decode("utf-8"))  # Võtan vastu porti, mille määrab server
+            #kasutajad = server.recv(1024).decode("utf-8")
             connection = create_connection((serv, uusport))
 
             def loe(connection):
@@ -212,7 +211,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
     if len(toad)==0: #juhul kui tube pole, läheb uustoa funktsiooni
         global poletuba_silt
         messagebox.showinfo("Error", "Paistab, et hetkel pole saadaval ühtegi tuba. Loon uue toa...")
-        uustuba(raam,kasutajanimi, nupuraam)
+        uustuba(raam,kasutajanimi, nupuraam, server)
 
     else:
         server.send(bytes("n", "utf-8")) # Saadan vastuse, et ei taha teha tuba
@@ -249,7 +248,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
 
         connection = create_connection((serv, uusport)) #luuakse ühendus
         connection.send(bytes(kasutajanimi,"utf-8"))
-        kasutajad = connection.recv(1024).decode("utf-8")
+        kasutajad = eval(connection.recv(1024).decode("utf-8"))
 
         # allpool olevad funktsioonid on sarnaselt olemas uustuba funktsiooni all, vt sealt täpsemalt seletust
 
@@ -349,7 +348,7 @@ def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
     olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server,kasutajanimi,toad, nupuraam))
     olemastoanupp.grid(column=1, row=0, padx=5, sticky=(W),pady=5 )
 
-    tagasinupp=ttk.Button(raam, text="Tagasi", command= lambda:tagasi(raam, chatiruum))
+    tagasinupp=ttk.Button(raam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server))
     tagasinupp.grid(column=0, row=1, padx=5, pady=5)
 
 

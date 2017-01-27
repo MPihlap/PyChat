@@ -16,7 +16,7 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
         while True:
             (uus, addr) = s.accept()
             nimi = uus.recv(1024).decode("utf-8")
-            uus.send(bytes(list(socketid),"utf-8"))
+            uus.send(bytes(str(list(socketid)),"utf-8"))
             kasutajad = []
             for i in socketid: #Moodustatakse järjend kasutajatest ja antakse ühendunutele teada, et on uus ühenduja
                 kasutajad.append(i)
@@ -106,7 +106,7 @@ main.listen(5)
 serverid = {} #Loome sõnastiku, millesse hakkame lisama tubade nimesid koos vastavate portidega
 kasutajanimed = [] #Loome järjendi, kuhu paneme kasutajanimed, et nimed ei korduks
 
-def määra_tuba(nimi,socket,aadress): #Tegeleb uute klientide otsimisega ja neile vastavalt vajadusele kas uue toa tegemisega või suunamisega
+def määra_tuba(socket,aadress): #Tegeleb uute klientide otsimisega ja neile vastavalt vajadusele kas uue toa tegemisega või suunamisega
     (uus, addr) = socket,aadress
     while True:
         try:
@@ -118,6 +118,7 @@ def määra_tuba(nimi,socket,aadress): #Tegeleb uute klientide otsimisega ja nei
         else:
             uus.send(bytes("y","utf-8"))
             kasutajanimed.append(nimi)
+            break
     try:
         global serverid
         uus.send(bytes(str(serverid), "utf-8")) #Saadame uuele ühendujale serverite sõnastiku, mille põhjal saab klient soovi korral olemasoleva toaga ühenduda
@@ -129,6 +130,11 @@ def määra_tuba(nimi,socket,aadress): #Tegeleb uute klientide otsimisega ja nei
                 for i in range(len(kasutajanimed)):
                     if kasutajanimed[i] == nimi:
                         del (kasutajanimed[i])
+            elif tahanteha == "/////TAGASI":
+                for i in range(len(kasutajanimed)):
+                    if kasutajanimed[i] == nimi:
+                        del (kasutajanimed[i])
+                määra_tuba(uus,addr)
         except ConnectionAbortedError: #Kui kasutaja akna sulgeb, mine eluga edasi
             for i in range(len(kasutajanimed)):
                 if kasutajanimed[i] == nimi:
@@ -136,13 +142,18 @@ def määra_tuba(nimi,socket,aadress): #Tegeleb uute klientide otsimisega ja nei
                     break
 
         else:  #Kui kasutaja soovib teha tuba, käivita uue toa funktsioon server()
-            servnimi = uus.recv(1024).decode("utf-8")
-            if servnimi != "": #Kui kliendilt saabub tühi sõne, siis on klient järelikult oma akna sulgenud.
-                port = leia_port()
-                uus.send(bytes(str(port),"utf-8"))
-                serverid[servnimi] = port
-                server(port,servnimi,nimi)
-            else:
+            try:
+                servnimi = uus.recv(1024).decode("utf-8")
+                if servnimi != "": #Kui kliendilt saabub tühi sõne, siis on klient järelikult oma akna sulgenud.
+                    port = leia_port()
+                    uus.send(bytes(str(port),"utf-8"))
+                    serverid[servnimi] = port
+                    server(port,servnimi,nimi)
+                else:
+                    for i in range(len(kasutajanimed)):
+                        if kasutajanimed[i] == nimi:
+                            del (kasutajanimed[i])
+            except ConnectionResetError:
                 for i in range(len(kasutajanimed)):
                     if kasutajanimed[i] == nimi:
                         del (kasutajanimed[i])
@@ -155,19 +166,8 @@ def määra_tuba(nimi,socket,aadress): #Tegeleb uute klientide otsimisega ja nei
 
 def uus_klient():
     (uus, addr) = main.accept() #Võta vastu uus ühendus
-    while True:
-        try:
-            nimi = uus.recv(1024).decode("utf-8") #Võta vastu kliendi valitud kasutajanimi
-        except ConnectionResetError:
-            break
-        if nimi in kasutajanimed:
-            uus.send(bytes("n","utf-8"))
-        else:
-            uus.send(bytes("y","utf-8"))
-            kasutajanimed.append(nimi)
-            kasutajathread = Thread(target=määra_tuba, args=[nimi,uus,addr]) #Loo ja käivita lõim, mis kliendiga tegeleb
-            kasutajathread.daemon = True
-            kasutajathread.start()
-            break
+    kasutajathread = Thread(target=määra_tuba, args=[uus,addr]) #Loo ja käivita lõim, mis kliendiga tegeleb
+    kasutajathread.daemon = True
+    kasutajathread.start()
 while True: #Võetakse vastu uusi ühendujaid ja luuakse nende jaoks eraldi Thread
     uus_klient()

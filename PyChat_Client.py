@@ -77,7 +77,7 @@ def menu():
 
 
 s = socket()
-serv = "192.168.1.34"
+serv = "192.168.43.161"
 #serv = "40.69.82.163"
 host = gethostname()
 port = 12345
@@ -113,6 +113,7 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
         elif len(serv_nimi)!=0:
             server.send(bytes("y", "utf-8"))  # Saadan vastuse, kas tahan või ei taha teha tuba
             server.send(bytes(serv_nimi, "utf-8"))  # Saadan nime
+            kasutajad = server.recv(1024).decode("utf-8")
             uusport = int(server.recv(1024).decode("utf-8"))  # Võtan vastu porti, mille määrab server
             connection = create_connection((serv, uusport))
 
@@ -248,6 +249,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
 
         connection = create_connection((serv, uusport)) #luuakse ühendus
         connection.send(bytes(kasutajanimi,"utf-8"))
+        kasutajad = connection.recv(1024).decode("utf-8")
 
         # allpool olevad funktsioonid on sarnaselt olemas uustuba funktsiooni all, vt sealt täpsemalt seletust
 

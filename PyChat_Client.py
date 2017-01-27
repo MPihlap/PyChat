@@ -29,10 +29,14 @@ def menu():
                 return messagebox.showerror("Error", "Sisestage palun nimi.")
 
             else:
-                global kasutajanimi
-                kasutajanimi += nimi.get() #kasutaja poolt valitud nimi
-                print(kasutajanimi)
-                break
+                server.send(bytes(nimi.get(),"utf-8"))
+                if server.recv(1024).decode("utf-8") == "y":
+                    global kasutajanimi
+                    kasutajanimi += nimi.get() #kasutaja poolt valitud nimi
+                    print(kasutajanimi)
+                    break
+                else:
+                    return messagebox.showerror("Error", "Nimi on juba kasutuses.")
         raam.destroy()
 
     siseraam = Frame() #raam, kuhu läheb nn login screeni widgetid ja labelid
@@ -76,7 +80,7 @@ toad = []
 #põhjus, miks kaks eraldi funktsiooni on nii uue toa loomise jaoks kui ka olemasolevaga liitumiseks on see, et kuigi kliendi poolt paistab asi sarnane olevat, käsitleb server neid kahte juhtumit erinevalt
 
 
-def uustuba(raam, nimi, nupuraam): #juhul kui kasutaja teeb uue toa
+def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
 
     #allpool widgetide ja labelite loomine
     nupuraam.destroy()
@@ -97,7 +101,9 @@ def uustuba(raam, nimi, nupuraam): #juhul kui kasutaja teeb uue toa
     def chatituba(event): #funktsioon chatitoa kuvamiseks
 
         serv_nimi=nimikast.get()
-        if len(serv_nimi)!=0:
+        if serv_nimi in toad:
+            messagebox.showerror("Error","Sellise nimega tuba on juba olemas!")
+        elif len(serv_nimi)!=0:
             server.send(bytes("y", "utf-8"))  # Saadan vastuse, kas tahan või ei taha teha tuba
             server.send(bytes(serv_nimi, "utf-8"))  # Saadan nime
             uusport = int(server.recv(1024).decode("utf-8"))  # Võtan vastu porti, mille määrab server
@@ -325,14 +331,13 @@ def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
 
     nupuraam= Frame()
     nupuraam.grid(column=0, row=1)
-    server.send(bytes(kasutajanimi,"utf-8")) #saadab kasutajanime
+    #server.send(bytes(kasutajanimi,"utf-8")) #saadab kasutajanime
     toad = eval(server.recv(1024).decode("utf-8")) #saab serverilt olemasolevad toad koos vastavate portidega
 
-    uustubanupp=ttk.Button(nupuraam, text="Tee uus tuba", command= lambda: uustuba(raam,kasutajanimi, nupuraam))
+    uustubanupp=ttk.Button(nupuraam, text="Tee uus tuba", command= lambda: uustuba(raam,kasutajanimi, nupuraam,toad))
     uustubanupp.grid(column=0, row=0, padx=5, sticky=(W),pady=5 )
     olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server,kasutajanimi,toad, nupuraam))
     olemastoanupp.grid(column=1, row=0, padx=5, sticky=(W),pady=5 )
-
 
 
     raam.mainloop()

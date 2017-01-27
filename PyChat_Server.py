@@ -16,6 +16,7 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
         while True:
             (uus, addr) = s.accept()
             nimi = uus.recv(1024).decode("utf-8")
+            uus.send(bytes(list(socketid),"utf-8"))
             kasutajad = []
             for i in socketid: #Moodustatakse järjend kasutajatest ja antakse ühendunutele teada, et on uus ühenduja
                 kasutajad.append(i)
@@ -107,6 +108,16 @@ kasutajanimed = [] #Loome järjendi, kuhu paneme kasutajanimed, et nimed ei kord
 
 def määra_tuba(nimi,socket,aadress): #Tegeleb uute klientide otsimisega ja neile vastavalt vajadusele kas uue toa tegemisega või suunamisega
     (uus, addr) = socket,aadress
+    while True:
+        try:
+            nimi = uus.recv(1024).decode("utf-8") #Võta vastu kliendi valitud kasutajanimi
+        except ConnectionResetError:
+            break
+        if nimi in kasutajanimed:
+            uus.send(bytes("n","utf-8"))
+        else:
+            uus.send(bytes("y","utf-8"))
+            kasutajanimed.append(nimi)
     try:
         global serverid
         uus.send(bytes(str(serverid), "utf-8")) #Saadame uuele ühendujale serverite sõnastiku, mille põhjal saab klient soovi korral olemasoleva toaga ühenduda

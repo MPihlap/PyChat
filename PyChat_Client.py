@@ -78,7 +78,7 @@ def menu():
 
 
 s = socket()
-serv = "10.0.102.77"
+serv = "192.168.1.234"
 #serv = "40.69.82.163"
 host = gethostname()
 port = 12345
@@ -95,13 +95,20 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
     nimiraam.grid(row=2, column=0)
 
     nimitekst=ttk.Label(nimiraam, text="Sisesta toa nimi: ", font=("Helvetica", 10, "bold"))
-    nimikast=ttk.Entry(nimiraam)
-    niminupp=ttk.Button(raam, text="Sisene", command=lambda: chatituba("<Return>"))
-
-
     nimitekst.grid(row=1, column=0, sticky=(W), padx=5, pady=2)
+
+    nimikast=ttk.Entry(nimiraam)
     nimikast.grid(row=2, column=0, sticky=(W), padx=5, pady=5)
+
+    niminupp=ttk.Button(raam, text="Sisene", command=lambda: chatituba("<Return>"))
     niminupp.grid(row=2, column=1, padx=5, sticky=(S), pady=5)
+
+
+    tagasinupp=ttk.Button(raam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server))
+    tagasinupp.grid(row=3, column=0, padx=5, pady=5)
+
+
+
 
 
     def chatituba(event): #funktsioon chatitoa kuvamiseks
@@ -189,6 +196,9 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
             sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection)) #seob funktsiooni enteri klahvile
             sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
+            tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server))
+            tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
+
             thread1 = Thread(target=lambda: loe(connection))
             thread1.daemon = True
             thread1.start()
@@ -232,8 +242,14 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         toakast = ttk.Entry(nimiraam, width=35) #kasutaja saab sisestada toanime, millega soovib liituda
         toakast.grid(row=3, column=0, padx=5, pady=2)
 
-        niminupp = ttk.Button(raam, text="Sisene", command=lambda: chatituba("<Return>"))
-        niminupp.grid(row=3, column=0, padx=5,pady=1)
+        nupuraam=Frame()
+        nupuraam.grid(row=3, column=0)
+
+        niminupp = ttk.Button(nupuraam, text="Sisene", command=lambda: chatituba("<Return>"))
+        niminupp.grid(row=0, column=0, padx=30,pady=1, sticky=W)
+
+        tagasinupp = ttk.Button(nupuraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server))
+        tagasinupp.grid(row=0, column=1, padx=30, pady=5, sticky=E)
 
     def chatituba(event):
 
@@ -295,7 +311,6 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
 
 
         nupuraam.destroy()
-        niminupp.destroy()
         nimiraam.destroy()
 
         tekstiraam = Frame()
@@ -316,6 +331,9 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
 
         sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection))
         sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
+
+        tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server))
+        tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
 
 
         #eraldi thread loe funktsiooni jaoks, et saaks pidevalt andmeid vastu võtta
@@ -348,8 +366,8 @@ def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
     olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server,kasutajanimi,toad, nupuraam))
     olemastoanupp.grid(column=1, row=0, padx=5, sticky=(W),pady=5 )
 
-    tagasinupp=ttk.Button(raam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server))
-    tagasinupp.grid(column=0, row=1, padx=5, pady=5)
+    tagasinupp=ttk.Button(nupuraam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server))
+    tagasinupp.grid(column=0, row=1, padx=5, pady=5, sticky=N+S+E+W)
 
 
 

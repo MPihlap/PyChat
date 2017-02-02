@@ -4,6 +4,8 @@ from select import select
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter.colorchooser import *
+from tkinter import Toplevel
 from winsound import *
 
 
@@ -80,7 +82,7 @@ def menu():
 
 
 s = socket()
-serv = "192.168.1.34"
+serv = "192.168.1.234"
 #serv = "40.69.82.163"
 host = gethostname()
 port = 12345
@@ -126,13 +128,15 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
             #kasutajad = server.recv(1024).decode("utf-8")
             connection = create_connection((serv, uusport))
 
+
             def loe(connection):
+                textbox.tag_configure("BOLD", background="#d1e4ff")  # stiliseerib kasutaja sõnumi ära
                 while True:
                     serv_räägib = select([connection], [], [], 0.1) #ootab serverilt tagasisidet
                     #allpool kuvatakse serverilt saadud info tekstikasti
+
                     if serv_räägib[0]:
                         sõnum = connection.recv(1024).decode("utf-8")
-                        textbox.tag_configure("BOLD",  background="#d1e4ff") #stiliseerib kasutaja sõnumi ära
                         sisendkast.configure(state="normal") #muudab sisendkasti tagasi redigeeritavaks (kuna kirjuta funktsioonis allpool see muudetakse mitteredigeeritavaks ühe teatud kala vältimiseks)
                         textbox.configure(state="normal")#tekstikasti muudetakse redigeeritavaks, et saaks sinna sõnum sisestada
 
@@ -140,11 +144,17 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
                             textbox.insert(INSERT, sõnum, ("BOLD"))
 
                         else:
+                            helivalik=valik.get()
+                            print(helivalik)
                             if sisendkast == sisendkast.focus_get() or sõnum=='Tere tulemast vestlusesse "' + serv_nimi + '"': #juhul kui ei ole fokuseeritud
                                 textbox.insert(INSERT, sõnum)
                             else:
-                                Beep(440, 150)  # teeb heli siis, kui on fokuseeritud aknale
-                                textbox.insert(INSERT, sõnum)
+                                if helivalik == 1:
+                                    Beep(440, 150)  # teeb heli
+                                    textbox.insert(INSERT, sõnum)
+                                else:
+                                    textbox.insert(INSERT, sõnum)
+
 
 
                         textbox.insert(END, "\n")
@@ -168,6 +178,13 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
                 clear_text(sisendkast)
                 sisendkast.configure(state="disabled")
                 textbox.see("end")
+
+            def värv():
+                värv = askcolor()
+                return textbox.tag_configure("BOLD", background=värv[1])
+
+
+
 
             try: #hävitab ebavajalikud widgetid ja raamid
                 while nimiraam.winfo_exists()==1:
@@ -199,8 +216,36 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
             sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection)) #seob funktsiooni enteri klahvile
             sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
-            tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,1))
+
+
+            def valikuaken(valik):
+
+
+                valikud=Toplevel()
+                valikud.resizable(width=False, height=False)
+                valikud.wm_attributes("-topmost", 1)
+                valikud.focus_force()
+                valikud.title("Valikud")
+
+                värvinupp = ttk.Button(valikud, text="Teksti värv", command=värv)
+                värvinupp.grid(row=0, column=0, padx=5, pady=5, sticky=(W, E))
+
+                helinupp = ttk.Checkbutton(valikud, text="Heli", variable=valik)
+                helinupp.grid(row=1, column=0, padx=5, pady=5)
+
+                return valik
+
+            valik = IntVar()
+
+            valiknupp=ttk.Button(tekstiraam, text="Valikud", command=lambda: valikuaken(valik))
+            valiknupp.grid(row=2, column=0, padx=5, pady=5)
+
+            tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server, 1))
             tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
+
+
+
+
 
             thread1 = Thread(target=lambda: loe(connection))
             thread1.daemon = True
@@ -233,7 +278,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         nimiraam = Frame()
         nimiraam.grid(row=2, column=0)
 
-        toanimesilt=ttk.Label(nimiraam, text="Toa nimed:")
+        toanimesilt=ttk.Label(nimiraam, text="Olemasolevad toad:")
         toanimesilt.grid(row=0, column=0)
 
         toanimed=ttk.Label(nimiraam, text=toanimed)
@@ -273,23 +318,26 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         # allpool olevad funktsioonid on sarnaselt olemas uustuba funktsiooni all, vt sealt täpsemalt seletust
 
         def loe(connection,serv_nimi):
+            textbox.tag_configure("BOLD", background="#d1e4ff")  # stiliseerib kasutaja sõnumi ära
             while True:
                 serv_räägib = select([connection], [], [], 0.1)
                 if serv_räägib[0]:
                     sõnum = connection.recv(1024).decode("utf-8")
-                    textbox.tag_configure("BOLD",  background="#d1e4ff")
-
                     sisendkast.configure(state="normal")
                     textbox.configure(state="normal")
                     if kasutajanimi == sõnum[0:len(kasutajanimi)] and sõnum[len(kasutajanimi)] == ":":
                         textbox.insert(INSERT, sõnum, ("BOLD"))
                     else:
-
+                        helivalik = valik.get()
                         if sisendkast == sisendkast.focus_get() or sõnum == 'Tere tulemast vestlusesse "' + serv_nimi + '"': #juhul kui ei ole fokusseeritud
                             textbox.insert(INSERT, sõnum)
                         else:
-                            Beep(440, 150)  # teeb heli
-                            textbox.insert(INSERT, sõnum)
+                            if helivalik==1:
+                                Beep(440, 150)  # teeb heli
+                                textbox.insert(INSERT, sõnum)
+                            else:
+                                textbox.insert(INSERT, sõnum)
+
 
                     textbox.insert(END, "\n")
                     textbox.configure(state="disabled")
@@ -313,6 +361,10 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
             sisendkast.configure(state="disabled")
             textbox.see("end")
 
+        def värv():
+            värv = askcolor()
+            return textbox.tag_configure("BOLD", background=värv[1])
+
 
         nupuraam.destroy()
         nimiraam.destroy()
@@ -335,6 +387,25 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
 
         sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection))
         sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
+
+        def valikuaken(valik):
+            valikud = Toplevel()
+            valikud.resizable(width=False, height=False)
+            valikud.wm_attributes("-topmost", 1)
+            valikud.focus_force()
+            valikud.title("Valikud")
+
+            värvinupp = ttk.Button(valikud, text="Teksti värv", command=värv)
+            värvinupp.grid(row=0, column=0, padx=5, pady=5, sticky=(W, E))
+
+            helinupp = ttk.Checkbutton(valikud, text="Heli", variable=valik)
+            helinupp.grid(row=1, column=0, padx=5, pady=5)
+
+            return valik
+
+        valik = IntVar()
+        valiknupp = ttk.Button(tekstiraam, text="Valikud", command=lambda: valikuaken(valik))
+        valiknupp.grid(row=2, column=0, padx=5, pady=5)
 
         tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,1))
         tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)

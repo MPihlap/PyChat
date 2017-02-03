@@ -6,6 +6,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter.colorchooser import *
 from tkinter import Toplevel
+from time import *
 from winsound import *
 
 
@@ -132,6 +133,7 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
             def loe(connection):
                 textbox.tag_configure("BOLD", background="#d1e4ff")  # stiliseerib kasutaja sõnumi ära
                 while True:
+                    aeg = "[" + asctime(localtime()).split()[3] + "]"
                     serv_räägib = select([connection], [], [], 0.1) #ootab serverilt tagasisidet
                     #allpool kuvatakse serverilt saadud info tekstikasti
 
@@ -141,7 +143,7 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
                         textbox.configure(state="normal")#tekstikasti muudetakse redigeeritavaks, et saaks sinna sõnum sisestada
 
                         if kasutajanimi == sõnum[0:len(kasutajanimi)] and sõnum[len(kasutajanimi)]==":": #tuvastab ära kliendipoolse kasutajanime
-                            textbox.insert(INSERT, sõnum, ("BOLD"))
+                            textbox.insert(INSERT, aeg+sõnum, ("BOLD"))
 
                         else:
                             helivalik=valik.get()
@@ -151,9 +153,9 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
                             else:
                                 if helivalik == 1:
                                     Beep(440, 150)  # teeb heli
-                                    textbox.insert(INSERT, sõnum)
+                                    textbox.insert(INSERT, aeg+sõnum)
                                 else:
-                                    textbox.insert(INSERT, sõnum)
+                                    textbox.insert(INSERT, aeg+sõnum)
 
 
 
@@ -320,23 +322,24 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         def loe(connection,serv_nimi):
             textbox.tag_configure("BOLD", background="#d1e4ff")  # stiliseerib kasutaja sõnumi ära
             while True:
+                aeg = "[" + asctime(localtime()).split()[3] + "]"
                 serv_räägib = select([connection], [], [], 0.1)
                 if serv_räägib[0]:
                     sõnum = connection.recv(1024).decode("utf-8")
                     sisendkast.configure(state="normal")
                     textbox.configure(state="normal")
                     if kasutajanimi == sõnum[0:len(kasutajanimi)] and sõnum[len(kasutajanimi)] == ":":
-                        textbox.insert(INSERT, sõnum, ("BOLD"))
+                        textbox.insert(INSERT, aeg+sõnum, ("BOLD"))
                     else:
                         helivalik = valik.get()
-                        if sisendkast == sisendkast.focus_get() or sõnum == 'Tere tulemast vestlusesse "' + serv_nimi + '"': #juhul kui ei ole fokusseeritud
+                        if sisendkast == sisendkast.focus_get() or 'Tere tulemast vestlusesse "' + serv_nimi + '"' in sõnum[:28+len(sõnum)]:  # juhul kui ei ole fokuseeritud
                             textbox.insert(INSERT, sõnum)
                         else:
                             if helivalik==1:
                                 Beep(440, 150)  # teeb heli
-                                textbox.insert(INSERT, sõnum)
+                                textbox.insert(INSERT, aeg+sõnum)
                             else:
-                                textbox.insert(INSERT, sõnum)
+                                textbox.insert(INSERT, aeg+sõnum)
 
 
                     textbox.insert(END, "\n")

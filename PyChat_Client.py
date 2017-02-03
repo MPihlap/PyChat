@@ -12,15 +12,28 @@ def sulgemine(): #Kontrollib sulgemist
     if messagebox.askokcancel("Sulge", "Oled kindel, et tahad programmi sulgeda?"):
         sys.exit()
 
-def tagasi(raam, eelmine_leht, server, n):
+def tagasi(raam, eelmine_leht, chatserv, n, socket):
     try:
         raam.destroy()
     except:
         pass
     if n == 0:
+        print("n = 0")
         global kasutajanimi
         kasutajanimi = ""
-    server.send(bytes("/////TAGASI","utf-8"))
+    if n != 2:
+        chatserv.send(bytes("/////TAGASI", "utf-8"))
+    if n == 2:
+        print("n = 2")
+        socket.send(bytes("/////TAGASI","utf-8"))
+        socket.close()
+        global server
+        print (serv,port)
+        server = create_connection((serv, port))
+        print(server)
+        print("Ühendus loodi")
+        print(server.recv(1024).decode("utf-8"))
+
     eelmine_leht()
 
 def menu():
@@ -107,7 +120,7 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
     niminupp.grid(row=2, column=1, padx=5, sticky=(S), pady=5)
 
 
-    tagasinupp=ttk.Button(raam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server,1))
+    tagasinupp=ttk.Button(raam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server,1,""))
     tagasinupp.grid(row=3, column=0, padx=5, pady=5)
 
 
@@ -131,7 +144,10 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
                     serv_räägib = select([connection], [], [], 0.1) #ootab serverilt tagasisidet
                     #allpool kuvatakse serverilt saadud info tekstikasti
                     if serv_räägib[0]:
-                        sõnum = connection.recv(1024).decode("utf-8")
+                        try:
+                            sõnum = connection.recv(1024).decode("utf-8")
+                        except OSError:
+                            break
                         textbox.tag_configure("BOLD",  background="#d1e4ff") #stiliseerib kasutaja sõnumi ära
                         sisendkast.configure(state="normal") #muudab sisendkasti tagasi redigeeritavaks (kuna kirjuta funktsioonis allpool see muudetakse mitteredigeeritavaks ühe teatud kala vältimiseks)
                         textbox.configure(state="normal")#tekstikasti muudetakse redigeeritavaks, et saaks sinna sõnum sisestada
@@ -199,7 +215,7 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
             sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection)) #seob funktsiooni enteri klahvile
             sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
-            tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,1))
+            tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,2,connection))
             tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
 
             thread1 = Thread(target=lambda: loe(connection))
@@ -251,7 +267,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         niminupp = ttk.Button(nupuraam, text="Sisene", command=lambda: chatituba("<Return>"))
         niminupp.grid(row=0, column=0, padx=30,pady=1, sticky=W)
 
-        tagasinupp = ttk.Button(nupuraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,1))
+        tagasinupp = ttk.Button(nupuraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, "",1,""))
         tagasinupp.grid(row=0, column=1, padx=30, pady=5, sticky=E)
 
     def chatituba(event):
@@ -276,7 +292,11 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
             while True:
                 serv_räägib = select([connection], [], [], 0.1)
                 if serv_räägib[0]:
-                    sõnum = connection.recv(1024).decode("utf-8")
+                    try:
+                        sõnum = connection.recv(1024).decode("utf-8")
+                    except OSError:
+                        break
+
                     textbox.tag_configure("BOLD",  background="#d1e4ff")
 
                     sisendkast.configure(state="normal")
@@ -336,7 +356,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection))
         sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
-        tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,1))
+        tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,2,connection))
         tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
 
 
@@ -353,7 +373,7 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
 
 
 def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
-    print("olen chatitoa funktsioonis")
+    print("olen chatiruumi funktsioonis")
     if kasutajanimi == "":
         print("lähen menu funktsiooni")
         menu()
@@ -372,7 +392,7 @@ def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
     olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server,kasutajanimi,toad, nupuraam))
     olemastoanupp.grid(column=1, row=0, padx=5, sticky=(W),pady=5 )
 
-    tagasinupp=ttk.Button(nupuraam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server,0))
+    tagasinupp=ttk.Button(nupuraam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server,0,""))
     tagasinupp.grid(column=0, row=1, padx=5, pady=5, sticky=N+S+E+W)
 
 

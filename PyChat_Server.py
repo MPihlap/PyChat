@@ -22,7 +22,7 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
                 kasutajad.append(i)
                 try:
                     socketid[i].send(bytes(nimi + " liitus vestlusega!", "utf-8"))
-                except ConnectionResetError: #Kui mõni kasutaja ei ole enam ühendunud, asendatakse socketi info sõnega
+                except ConnectionError: #Kui mõni kasutaja ei ole enam ühendunud, asendatakse socketi info sõnega
                     socketid[i] = "PUUDUB"
 
             while "PUUDUB" in socketid.values(): #Vabanetakse vajaduse korral kadunud socketist
@@ -58,15 +58,20 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
                 try:
                     tekst = socketid[i].recv(1024).decode("utf-8")
                     if tekst == "/////TAGASI":
-                        socketid[i] = "PUUDUB"
+                        print(tekst)
+
                         for n in list(socketid):
                             try:  # Anname märku, et keegi on vestlusest lahkunud
                                 socketid[n].send(bytes(i + " lahkus vestlusest!", "utf-8"))
-                            except AttributeError:
+                            except ConnectionError:
                                 pass
+                            uus, addr = main.accept()
+                            print("Ühendus loodi")
+                            uus.send(bytes("Testin ühendust","utf-8"))
                         kasutajathread = Thread(target=määra_tuba, args=[uus, addr, 1, i])  # Loo ja käivita lõim, mis kliendiga tegeleb
                         kasutajathread.daemon = True
                         kasutajathread.start()
+                        socketid[i] = "PUUDUB"
                     else:
                         print(tekst)
                         for n in list(socketid):
@@ -137,12 +142,15 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
         nimi = kasutajanimi
     try:
         global serverid
+        print("Enne serverit")
         uus.send(bytes(str(serverid), "utf-8")) #Saadame uuele ühendujale serverite sõnastiku, mille põhjal saab klient soovi korral olemasoleva toaga ühenduda
+        print("Pärast serverit")
         try:
             tahanteha = uus.recv(1024).decode("utf-8")
             print("Tahan teha",tahanteha)
             if tahanteha == "n" and len(serverid) >=1:
                 sulgemise_kontroll = uus.recv(1024).decode("utf-8")
+                print("Sulgemise kontroll", sulgemise_kontroll)
                 if sulgemise_kontroll == "":
                     for i in range(len(kasutajanimed)):
                         if kasutajanimed[i] == nimi:

@@ -27,12 +27,12 @@ def tagasi(raam, eelmine_leht, chatserv, n, socket):
         print("n = 2")
         socket.send(bytes("/////TAGASI","utf-8"))
         socket.close()
-        global server
+        #global server
         print (serv,port)
-        server = create_connection((serv, port))
+        #server = create_connection((serv, port))
         print(server)
         print("Ühendus loodi")
-        print(server.recv(1024).decode("utf-8"))
+        #print(server.recv(1024).decode("utf-8"))
 
     eelmine_leht()
 
@@ -146,6 +146,8 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
                     if serv_räägib[0]:
                         try:
                             sõnum = connection.recv(1024).decode("utf-8")
+                            if sõnum == "/////TAGASI":
+                                break
                         except OSError:
                             break
                         textbox.tag_configure("BOLD",  background="#d1e4ff") #stiliseerib kasutaja sõnumi ära
@@ -294,6 +296,8 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
                 if serv_räägib[0]:
                     try:
                         sõnum = connection.recv(1024).decode("utf-8")
+                        if sõnum == "/////TAGASI":
+                            break
                     except OSError:
                         break
 

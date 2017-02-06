@@ -212,30 +212,6 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
             if kasutajanimed[i] == nimi:
                 del (kasutajanimed[i])
                 break
-"""
-        else:  #Kui kasutaja soovib teha tuba, käivita uue toa funktsioon server()
-            print("Siia saime")
-            try:
-                serv_saab = uus.recv(1024).decode("utf-8")
-                if serv_saab == "/////TAGASI":
-                    print("saime siia")
-                    määra_tuba(uus,addr,1,nimi)
-                elif serv_saab == "y": #Kui kliendilt saabub tühi sõne, siis on klient järelikult oma akna sulgenud.
-                    servnimi = uus.recv(1024).decode("utf-8")
-                    port = leia_port()
-                    uus.send(bytes(str(port),"utf-8"))
-                    serverid[servnimi] = port
-                    server(port,servnimi,nimi)
-                else:
-                    for i in range(len(kasutajanimed)):
-                        if kasutajanimed[i] == nimi:
-                            del (kasutajanimed[i])
-            except ConnectionResetError:
-                for i in range(len(kasutajanimed)):
-                    if kasutajanimed[i] == nimi:
-                        del (kasutajanimed[i])
-"""
-
 
 def uus_klient():
     (uus, addr) = main.accept() #Võta vastu uus ühendus

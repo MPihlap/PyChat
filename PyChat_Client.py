@@ -260,7 +260,7 @@ def uustuba(raam, pearaam, toad): #juhul kui kasutaja teeb uue toa
             valiknupp=ttk.Button(tekstiraam, text="Valikud", command=lambda: valikuaken(valik))
             valiknupp.grid(row=2, column=0, padx=5, pady=5)
 
-            tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server, 1, ""))
+            tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server, 2, connection))
             tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
 
             thread1 = Thread(target=lambda: loe(connection))
@@ -431,7 +431,7 @@ def olemastuba(raam, server, toad, pearaam): #juhul kui kasutaja tahab olemasole
         valiknupp = ttk.Button(tekstiraam, text="Valikud", command=lambda: valikuaken(valik))
         valiknupp.grid(row=2, column=0, padx=5, pady=5)
 
-        tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,1, ""))
+        tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,2,connection))
         tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
 
 

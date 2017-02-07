@@ -4,16 +4,44 @@ from select import select
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter.colorchooser import *
+from time import *
 from winsound import *
 
 
+def clear_text(entry):  # kasutatakse sisendkasti sõnumi kustutamiseks
+    entry.delete("1.0", END)
 
-def sulgemine(): #Kontrollib sulgemist
+def sulgemine():  # Kontrollib sulgemist
     if messagebox.askokcancel("Sulge", "Oled kindel, et tahad programmi sulgeda?"):
         sys.exit()
 
+def tagasi(raam, eelmine_leht, chatserv, n, socket):
+    try:
+        raam.destroy()
+    except:
+        pass
+    if n == 0:
+        print("n = 0")
+        global kasutajanimi
+        kasutajanimi = ""
+    if n != 2:
+        chatserv.send(bytes("/////TAGASI", "utf-8"))
+    if n == 2:
+        print("n = 2")
+        socket.send(bytes("/////TAGASI","utf-8"))
+        socket.close()
+        #global server
+        print (serv,port)
+        #server = create_connection((serv, port))
+        print(server)
+        print("Ühendus loodi")
+        #print(server.recv(1024).decode("utf-8"))
+
+    eelmine_leht()
 
 def menu():
+
     #Raami koostamine
     raam = Tk()
     raam.title("PyChat")
@@ -38,7 +66,6 @@ def menu():
                 else:
                     return messagebox.showerror("Error", "Nimi on juba kasutuses.")
         raam.destroy()
-
     siseraam = Frame() #raam, kuhu läheb nn login screeni widgetid ja labelid
     siseraam.grid(row=0, column=0)
 
@@ -66,69 +93,81 @@ def menu():
 
     raam.mainloop()
 
-    return kasutajanimi
+    #return kasutajanimi
 
 
 s = socket()
-serv = "192.168.1.34"
-#serv = "40.69.82.163"
+serv = "52.174.33.64"
 host = gethostname()
 port = 12345
 server = create_connection((serv, port))
 toad = []
 
-#põhjus, miks kaks eraldi funktsiooni on nii uue toa loomise jaoks kui ka olemasolevaga liitumiseks on see, et kuigi kliendi poolt paistab asi sarnane olevat, käsitleb server neid kahte juhtumit erinevalt
 
-
-def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
+def uustuba(raam, pearaam, toad): #juhul kui kasutaja teeb uue toa
+    server.send(bytes("y","utf-8"))
 
     #allpool widgetide ja labelite loomine
-    nupuraam.destroy()
+    pearaam.destroy()
 
     nimiraam=Frame()
-    nimiraam.grid(row=2, column=0)
+    nimiraam.grid(row=0, column=0)
 
-    nimitekst=ttk.Label(nimiraam, text="Sisesta toa nimi: ", font=("Helvetica", 10, "bold"))
-    nimikast=ttk.Entry(nimiraam)
-    niminupp=ttk.Button(raam, text="Sisene", command=lambda: chatituba("<Return>"))
-
-
+    nimitekst=ttk.Label(nimiraam, text="Sisestage uue toa nimi: ", font=("Helvetica", 14, "bold"))
     nimitekst.grid(row=1, column=0, sticky=(W), padx=5, pady=2)
-    nimikast.grid(row=2, column=0, sticky=(W), padx=5, pady=5)
-    niminupp.grid(row=2, column=1, padx=5, sticky=(S), pady=5)
+
+    nimikast=ttk.Entry(nimiraam)
+    nimikast.grid(row=2, column=0, sticky=(W, E), padx=5, pady=5)
+
+    niminupp=ttk.Button(nimiraam, text="Sisene", command=lambda: chatituba("<Return>"))
+    niminupp.grid(row=3, column=0, padx=5, sticky=(W, E), pady=3)
+
+
+    tagasinupp=ttk.Button(nimiraam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server,1,""))
+    tagasinupp.grid(row=4, column=0, padx=5, pady=3, sticky=(W, E))
 
 
     def chatituba(event): #funktsioon chatitoa kuvamiseks
 
         serv_nimi=nimikast.get()
-        if serv_nimi in toad:
+        if serv_nimi in list(toad):
             messagebox.showerror("Error","Sellise nimega tuba on juba olemas!")
         elif len(serv_nimi)!=0:
-            server.send(bytes("y", "utf-8"))  # Saadan vastuse, kas tahan või ei taha teha tuba
+            server.send(bytes("y", "utf-8"))  # Saadan vastuse, kas tuba on võimalik luua
             server.send(bytes(serv_nimi, "utf-8"))  # Saadan nime
             uusport = int(server.recv(1024).decode("utf-8"))  # Võtan vastu porti, mille määrab server
             connection = create_connection((serv, uusport))
 
             def loe(connection):
+                textbox.tag_configure("BOLD", background="#d1e4ff")  # stiliseerib kasutaja sõnumi ära
                 while True:
+                    aeg = "[" + asctime(localtime()).split()[3] + "]"
                     serv_räägib = select([connection], [], [], 0.1) #ootab serverilt tagasisidet
                     #allpool kuvatakse serverilt saadud info tekstikasti
                     if serv_räägib[0]:
-                        sõnum = connection.recv(1024).decode("utf-8")
-                        textbox.tag_configure("BOLD",  background="#d1e4ff") #stiliseerib kasutaja sõnumi ära
+                        try:
+                            sõnum = connection.recv(1024).decode("utf-8")
+                            if sõnum == "/////TAGASI":
+                                break
+                        except OSError:
+                            break
                         sisendkast.configure(state="normal") #muudab sisendkasti tagasi redigeeritavaks (kuna kirjuta funktsioonis allpool see muudetakse mitteredigeeritavaks ühe teatud kala vältimiseks)
                         textbox.configure(state="normal")#tekstikasti muudetakse redigeeritavaks, et saaks sinna sõnum sisestada
 
                         if kasutajanimi == sõnum[0:len(kasutajanimi)] and sõnum[len(kasutajanimi)]==":": #tuvastab ära kliendipoolse kasutajanime
-                            textbox.insert(INSERT, sõnum, ("BOLD"))
+                            textbox.insert(INSERT, aeg+" "+sõnum, ("BOLD"))
 
                         else:
+                            helivalik=valik.get()
+                            print(helivalik)
                             if sisendkast == sisendkast.focus_get() or sõnum=='Tere tulemast vestlusesse "' + serv_nimi + '"': #juhul kui ei ole fokuseeritud
                                 textbox.insert(INSERT, sõnum)
                             else:
-                                Beep(440, 150)  # teeb heli siis, kui on fokuseeritud aknale
-                                textbox.insert(INSERT, sõnum)
-
+                                if helivalik == 1:
+                                    Beep(440, 150)  # teeb heli
+                                    textbox.insert(INSERT, aeg+" "+sõnum)
+                                else:
+                                    textbox.insert(INSERT, aeg+" "+sõnum)
 
                         textbox.insert(END, "\n")
                         textbox.configure(state="disabled") #tagasi mitteredigeeritavaks
@@ -138,8 +177,7 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
                         sisendkast.configure(state="normal")
 
 
-            def clear_text(entry): #kasutatakse sisendkasti sõnumi kustutamiseks
-                entry.delete("1.0", END)
+
 
             def kirjuta(connection): #saadab sisendkasti teksti serverile
                 sõnum=sisendkast.get("1.0","end-1c")
@@ -151,6 +189,10 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
                 clear_text(sisendkast)
                 sisendkast.configure(state="disabled")
                 textbox.see("end")
+
+            def värv(valikud):
+                värv = askcolor(parent=valikud)
+                return textbox.tag_configure("BOLD", background=värv[1])
 
             try: #hävitab ebavajalikud widgetid ja raamid
                 while nimiraam.winfo_exists()==1:
@@ -182,20 +224,54 @@ def uustuba(raam, nimi, nupuraam, toad): #juhul kui kasutaja teeb uue toa
             sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection)) #seob funktsiooni enteri klahvile
             sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
+            def valikukontroll(valikud, valik):
+                valiknupp.configure(state=NORMAL)
+                valikud.destroy()
+
+                return valik
+
+
+            def valikuaken(valik):
+
+                valiknupp.configure(state=DISABLED)
+
+                valikud=Tk()
+                valikud.title("Valikud")
+                valikud.resizable(width=False, height=False)
+                valikud.wm_attributes("-topmost", 1)
+                valikud.focus_force()
+
+
+                värvinupp = ttk.Button(valikud, text="Teksti värv", command=lambda: värv(valikud))
+                värvinupp.grid(row=0, column=0, padx=10, pady=5, sticky=(W, E))
+
+                helinupp = ttk.Checkbutton(valikud, text="Heli", variable=valik)
+
+                helinupp.grid(row=1, column=0, padx=10, pady=5)
+
+                valikutagasinupp=ttk.Button(valikud, text="Sulge", command=lambda: valikukontroll(valikud, valik))
+                valikutagasinupp.grid(row=2, column=0, pady=10)
+
+                valikud.protocol("WM_DELETE_WINDOW", lambda: valikukontroll(valikud, valik))
+
+            valik = IntVar()
+            valik.set(1)
+
+            valiknupp=ttk.Button(tekstiraam, text="Valikud", command=lambda: valikuaken(valik))
+            valiknupp.grid(row=2, column=0, padx=5, pady=5)
+
+            tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server, 1, ""))
+            tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
+
             thread1 = Thread(target=lambda: loe(connection))
             thread1.daemon = True
             thread1.start()
 
 
-
-
-
-
-
     nimikast.bind('<Return>', chatituba)
 
 
-def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab olemasoleva toaga liituda
+def olemastuba(raam, server, toad, pearaam): #juhul kui kasutaja tahab olemasoleva toaga liituda
     toa_nimed = []
     for i in toad:
         toa_nimed.append(i)
@@ -204,16 +280,16 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
     if len(toad)==0: #juhul kui tube pole, läheb uustoa funktsiooni
         global poletuba_silt
         messagebox.showinfo("Error", "Paistab, et hetkel pole saadaval ühtegi tuba. Loon uue toa...")
-        uustuba(raam,kasutajanimi, nupuraam)
+        uustuba(raam, pearaam, toad)
 
     else:
         server.send(bytes("n", "utf-8")) # Saadan vastuse, et ei taha teha tuba
-        nupuraam.destroy()
+        pearaam.destroy()
 
         nimiraam = Frame()
         nimiraam.grid(row=2, column=0)
 
-        toanimesilt=ttk.Label(nimiraam, text="Toa nimed:")
+        toanimesilt=ttk.Label(nimiraam, text="Olemasolevad toad:")
         toanimesilt.grid(row=0, column=0)
 
         toanimed=ttk.Label(nimiraam, text=toanimed)
@@ -223,12 +299,19 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         nimitekst.grid(row=2, column=0, padx=5, pady=2)
 
         toakast = ttk.Entry(nimiraam, width=35) #kasutaja saab sisestada toanime, millega soovib liituda
-        toakast.grid(row=3, column=0, padx=5, pady=2)
+        toakast.grid(row=3, column=0, padx=5, pady=7, sticky=(W, E))
 
-        niminupp = ttk.Button(raam, text="Sisene", command=lambda: chatituba("<Return>"))
-        niminupp.grid(row=3, column=0, padx=5,pady=1)
+        nupuraam=Frame()
+        nupuraam.grid(row=3, column=0)
+
+        niminupp = ttk.Button(nimiraam, text="Sisene", command=lambda: chatituba("<Return>"))
+        niminupp.grid(row=4, column=0, padx=5,pady=2, sticky=(W, E))
+
+        tagasinupp = ttk.Button(nimiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, "",1,""))
+        tagasinupp.grid(row=5, column=0, padx=5, pady=2, sticky=(W, E))
 
     def chatituba(event):
+        server.send(bytes("Suvaline sõne","utf-8"))
 
         tuba=toakast.get() #võtab kasutaja sisestatud toa nime
 
@@ -238,38 +321,45 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         except KeyError:
             return messagebox.showerror("Error", "Sellist toanime ei leidu.")
 
-
         connection = create_connection((serv, uusport)) #luuakse ühendus
         connection.send(bytes(kasutajanimi,"utf-8"))
 
         # allpool olevad funktsioonid on sarnaselt olemas uustuba funktsiooni all, vt sealt täpsemalt seletust
 
         def loe(connection,serv_nimi):
+            textbox.tag_configure("BOLD", background="#d1e4ff")  # stiliseerib kasutaja sõnumi ära
             while True:
+                aeg = "[" + asctime(localtime()).split()[3] + "]"
                 serv_räägib = select([connection], [], [], 0.1)
                 if serv_räägib[0]:
-                    sõnum = connection.recv(1024).decode("utf-8")
-                    textbox.tag_configure("BOLD",  background="#d1e4ff")
+                    try:
+                        sõnum = connection.recv(1024).decode("utf-8")
+                        if sõnum == "/////TAGASI":
+                            break
+                    except OSError:
+                        break
 
                     sisendkast.configure(state="normal")
                     textbox.configure(state="normal")
                     if kasutajanimi == sõnum[0:len(kasutajanimi)] and sõnum[len(kasutajanimi)] == ":":
-                        textbox.insert(INSERT, sõnum, ("BOLD"))
+                        textbox.insert(INSERT, aeg+" "+sõnum, ("BOLD"))
                     else:
-
-                        if sisendkast == sisendkast.focus_get() or sõnum == 'Tere tulemast vestlusesse "' + serv_nimi + '"': #juhul kui ei ole fokusseeritud
+                        helivalik = valik.get()
+                        if sisendkast == sisendkast.focus_get() or 'Tere tulemast vestlusesse "' + serv_nimi + '"' in sõnum[:28+len(sõnum)]:  # juhul kui ei ole fokuseeritud
                             textbox.insert(INSERT, sõnum)
                         else:
-                            Beep(440, 150)  # teeb heli
-                            textbox.insert(INSERT, sõnum)
+                            if helivalik==1:
+                                Beep(440, 150)  # teeb heli
+                                textbox.insert(INSERT, aeg+" "+sõnum)
+                            else:
+                                textbox.insert(INSERT, aeg+" "+sõnum)
+
 
                     textbox.insert(END, "\n")
                     textbox.configure(state="disabled")
                     textbox.see("end")
                 if sisendkast.cget("state") == "disabled":
                     sisendkast.configure(state="normal")
-
-
 
         def kirjuta(connection):
             sõnum = sisendkast.get("1.0", "end-1c")
@@ -278,23 +368,22 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
                 connection.send(bytes(sõnum, "utf-8"))
                 break
 
-            def clear_text(entry):
-                entry.delete("1.0", END)
-
             clear_text(sisendkast)
             sisendkast.configure(state="disabled")
             textbox.see("end")
 
+        def värv(valikud):
+            värv = askcolor(parent=valikud)
+            return textbox.tag_configure("BOLD", background=värv[1])
+
 
         nupuraam.destroy()
-        niminupp.destroy()
         nimiraam.destroy()
 
         tekstiraam = Frame()
         tekstiraam.grid(row=3, column=0)
 
         raam.title(tuba)
-
 
         textbox = Text(tekstiraam, height=10, width=50, padx=5, state="disabled", wrap=WORD)
         textbox.grid(row=0, column=0)
@@ -309,40 +398,83 @@ def olemastuba(raam, server, nimi, toad, nupuraam): #juhul kui kasutaja tahab ol
         sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection))
         sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
+        def valikukontroll(valikud, valik):
+            valiknupp.configure(state=NORMAL)
+            valikud.destroy()
+
+            return valik
+
+        def valikuaken(valik):
+
+            valiknupp.configure(state=DISABLED)
+
+            valikud = Tk()
+            valikud.title("Valikud")
+            valikud.resizable(width=False, height=False)
+            valikud.wm_attributes("-topmost", 1)
+            valikud.focus_force()
+
+            värvinupp = ttk.Button(valikud, text="Teksti värv", command=lambda: värv(valikud))
+            värvinupp.grid(row=0, column=0, padx=10, pady=5, sticky=(W, E))
+
+            helinupp = ttk.Checkbutton(valikud, text="Heli", variable=valik, state=ACTIVE)
+            helinupp.grid(row=1, column=0, padx=10, pady=5)
+
+            valikutagasinupp = ttk.Button(valikud, text="Sulge", command=lambda: valikukontroll(valikud, valik))
+            valikutagasinupp.grid(row=2, column=0, pady=10)
+
+            valikud.protocol("WM_DELETE_WINDOW", lambda: valikukontroll(valikud, valik))
+
+        valik = IntVar()
+        valik.set(1)
+
+        valiknupp = ttk.Button(tekstiraam, text="Valikud", command=lambda: valikuaken(valik))
+        valiknupp.grid(row=2, column=0, padx=5, pady=5)
+
+        tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,1, ""))
+        tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
+
 
         #eraldi thread loe funktsiooni jaoks, et saaks pidevalt andmeid vastu võtta
         thread1 = Thread(target=lambda: loe(connection,tuba))
         thread1.daemon = True
         thread1.start()
 
-
     try:
         toakast.bind('<Return>',chatituba) #seotakse chatituba funktsioon enteri klahviga
     except UnboundLocalError:
         pass
 
-
 def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
-
-    menu()
+    print("olen chatitoa funktsioonis")
+    if kasutajanimi == "":
+        print("lähen menu funktsiooni")
+        menu()
     raam = Tk()
-    raam.title("UTChat")
+    raam.title("PyChat")
     raam.resizable(width=False, height=False)
 
-    nupuraam= Frame()
-    nupuraam.grid(column=0, row=1)
+    pearaam= Frame()
+    pearaam.grid(column=0, row=0)
+    nupuraam=Frame(master=pearaam)
+    nupuraam.grid(column=0, row=0)
     #server.send(bytes(kasutajanimi,"utf-8")) #saadab kasutajanime
     toad = eval(server.recv(1024).decode("utf-8")) #saab serverilt olemasolevad toad koos vastavate portidega
 
-    uustubanupp=ttk.Button(nupuraam, text="Tee uus tuba", command= lambda: uustuba(raam,kasutajanimi, nupuraam,toad))
+    uustubanupp=ttk.Button(nupuraam, text="Loo uus tuba", command= lambda: uustuba(raam, pearaam,toad))
     uustubanupp.grid(column=0, row=0, padx=5, sticky=(W),pady=5 )
-    olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server,kasutajanimi,toad, nupuraam))
+
+    olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server,toad, pearaam))
     olemastoanupp.grid(column=1, row=0, padx=5, sticky=(W),pady=5 )
+
+    tagasiraam=Frame(master=pearaam)
+    tagasiraam.grid(row=1, column=0)
+
+    tagasinupp=ttk.Button(tagasiraam, text="Tagasi", command= lambda:tagasi(raam, chatiruum, server,0,""))
+    tagasinupp.grid(column=0, row=0, padx=5, pady=5, sticky=W+E)
 
 
     raam.mainloop()
-
-
 
 kasutajanimi = ""
 chatiruum()

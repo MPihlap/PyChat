@@ -28,15 +28,8 @@ def tagasi(raam, eelmine_leht, chatserv, n, socket):
     if n != 2:
         chatserv.send(bytes("/////TAGASI", "utf-8"))
     if n == 2:
-        print("n = 2")
         socket.send(bytes("/////TAGASI","utf-8"))
         socket.close()
-        #global server
-        print (serv,port)
-        #server = create_connection((serv, port))
-        print(server)
-        print("Ühendus loodi")
-        #print(server.recv(1024).decode("utf-8"))
 
     eelmine_leht()
 
@@ -93,18 +86,16 @@ def menu():
 
     raam.mainloop()
 
-    #return kasutajanimi
-
 
 s = socket()
-serv = "192.168.1.34"
+serv = "172.19.24.127"
 host = gethostname()
 port = 12345
 server = create_connection((serv, port))
 toad = []
 
 
-def uustuba(raam, pearaam, toad): #juhul kui kasutaja teeb uue toa
+def uustuba(raam, pearaam): #juhul kui kasutaja teeb uue toa
     server.send(bytes("y","utf-8"))
 
     #allpool widgetide ja labelite loomine
@@ -128,13 +119,17 @@ def uustuba(raam, pearaam, toad): #juhul kui kasutaja teeb uue toa
 
 
     def chatituba(event): #funktsioon chatitoa kuvamiseks
-
+        kas_sobib = ""
         serv_nimi=nimikast.get()
-        if serv_nimi in list(toad):
+        if serv_nimi == "":
+            messagebox.showerror("Error","Sisestage palun nimi!")
+        else:
+            server.send(bytes(serv_nimi,"utf-8"))
+            kas_sobib = server.recv(1024).decode("utf-8")
+        if kas_sobib == "n":
             messagebox.showerror("Error","Sellise nimega tuba on juba olemas!")
-        elif len(serv_nimi)!=0:
-            server.send(bytes("y", "utf-8"))  # Saadan vastuse, kas tuba on võimalik luua
-            server.send(bytes(serv_nimi, "utf-8"))  # Saadan nime
+
+        else:
             uusport = int(server.recv(1024).decode("utf-8"))  # Võtan vastu porti, mille määrab server
             connection = create_connection((serv, uusport))
 
@@ -271,19 +266,19 @@ def uustuba(raam, pearaam, toad): #juhul kui kasutaja teeb uue toa
     nimikast.bind('<Return>', chatituba)
 
 
-def olemastuba(raam, server, toad, pearaam): #juhul kui kasutaja tahab olemasoleva toaga liituda
-    toa_nimed = []
-    for i in toad:
-        toa_nimed.append(i)
+def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toaga liituda
+    server.send(bytes("n","utf-8"))
+    kas_saab = server.recv(1024).decode("utf-8")
+    uued_toad = eval(server.recv(1024).decode("utf-8"))
+    toa_nimed = list(uued_toad)
     toanimed = str(toa_nimed).strip("[]")
 
-    if len(toad)==0: #juhul kui tube pole, läheb uustoa funktsiooni
+    if kas_saab != "y": #juhul kui tube pole, läheb uustoa funktsiooni
         global poletuba_silt
         messagebox.showinfo("Error", "Paistab, et hetkel pole saadaval ühtegi tuba. Loon uue toa...")
-        uustuba(raam, pearaam, toad)
+        uustuba(raam, pearaam)
 
     else:
-        server.send(bytes("n", "utf-8")) # Saadan vastuse, et ei taha teha tuba
         pearaam.destroy()
 
         nimiraam = Frame()
@@ -317,7 +312,7 @@ def olemastuba(raam, server, toad, pearaam): #juhul kui kasutaja tahab olemasole
 
         #kontrollitakse toanime
         try:
-            uusport = toad[tuba]
+            uusport = uued_toad[tuba]
         except KeyError:
             return messagebox.showerror("Error", "Sellist toanime ei leidu.")
 
@@ -446,9 +441,7 @@ def olemastuba(raam, server, toad, pearaam): #juhul kui kasutaja tahab olemasole
         pass
 
 def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
-    print("olen chatitoa funktsioonis")
     if kasutajanimi == "":
-        print("lähen menu funktsiooni")
         menu()
     raam = Tk()
     raam.title("PyChat")
@@ -458,13 +451,11 @@ def chatiruum(): #valikmenüü peale nn 'sisselogimismenüüd'
     pearaam.grid(column=0, row=0)
     nupuraam=Frame(master=pearaam)
     nupuraam.grid(column=0, row=0)
-    #server.send(bytes(kasutajanimi,"utf-8")) #saadab kasutajanime
-    toad = eval(server.recv(1024).decode("utf-8")) #saab serverilt olemasolevad toad koos vastavate portidega
 
-    uustubanupp=ttk.Button(nupuraam, text="Loo uus tuba", command= lambda: uustuba(raam, pearaam,toad))
+    uustubanupp=ttk.Button(nupuraam, text="Loo uus tuba", command= lambda: uustuba(raam, pearaam))
     uustubanupp.grid(column=0, row=0, padx=5, sticky=(W),pady=5 )
 
-    olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server,toad, pearaam))
+    olemastoanupp=ttk.Button(nupuraam, text="Liitu olemasolevaga",command=lambda:olemastuba(raam,server, pearaam))
     olemastoanupp.grid(column=1, row=0, padx=5, sticky=(W),pady=5 )
 
     tagasiraam=Frame(master=pearaam)

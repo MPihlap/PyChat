@@ -4,8 +4,9 @@ from threading import *
 
 def puhasta_järjend(järjend, sõne):
     for i in range(len(järjend)):
-        if i == sõne:
+        if järjend[i] == sõne:
             del järjend[i]
+            break
 
 def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
     s = socket()
@@ -20,7 +21,6 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
         while True:
             (uus, addr) = s.accept()
             nimi = uus.recv(1024).decode("utf-8")
-            uus.send(bytes(str(list(socketid)),"utf-8"))
             kasutajad = []
             for i in socketid: #Moodustatakse järjend kasutajatest ja antakse ühendunutele teada, et on uus ühenduja
                 kasutajad.append(i)
@@ -35,10 +35,6 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
                 for i in socketid:
                     if socketid[i] == "PUUDUB":
                         del socketid[i]
-                        #for n in range(len(kasutajanimed)):
-                         #   if kasutajanimed[n] == i:
-                          #      del(kasutajanimed[n])
-                           #     break
                         break
 
             uus.send(bytes('Tere tulemast vestlusesse "'+servnimi+'"\n', "utf-8")) #Tervitatakse ühendujat ja saadetakse juba ühendunute nimekiri
@@ -65,17 +61,12 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
                     tekst = socketid[i].recv(1024).decode("utf-8")
                     if tekst == "/////TAGASI":
                         socketid[i].send(bytes("/////TAGASI","utf-8"))
-                        print("server() funktsioonis tagasi",tekst)
-
                         for n in list(socketid):
                             try:  # Anname märku, et keegi on vestlusest lahkunud
                                 socketid[n].send(bytes(i + " lahkus vestlusest!", "utf-8"))
                             except ConnectionError:
                                 pass
-                            #global main
-                            #uus, addr = main.accept()
-                            print("Ühendus loodi")
-                            #peasocketid[i].send(bytes("Testin ühendust","utf-8"))
+
                         kasutajathread = Thread(target=määra_tuba, args=[peasocketid[i], addr, 1, i])  # Loo ja käivita lõim, mis kliendiga tegeleb
                         kasutajathread.daemon = True
                         kasutajathread.start()
@@ -93,7 +84,6 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
                     socketid[i] = "PUUDUB"
                     del peasocketid[i]
                     puhasta_järjend(kasutajanimed, i)
-
                     for n in list(socketid):
                         try: # Anname märku, et keegi on vestlusest lahkunud
                             socketid[n].send(bytes(i + " lahkus vestlusest!", "utf-8"))
@@ -103,10 +93,6 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
             for n in socketid:
                 if socketid[n] == "PUUDUB":
                     del socketid[n]
-                    #for i in range(len(kasutajanimed)):
-                     #   if kasutajanimed[i] == n:
-                      #      del (kasutajanimed[i])
-                       #     break
                     break
 
 
@@ -157,61 +143,50 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
         nimi = kasutajanimi
 
     try:
-        global serverid
-        print("Enne serverit")
-        uus.send(bytes(str(serverid), "utf-8")) #Saadame uuele ühendujale serverite sõnastiku, mille põhjal saab klient soovi korral olemasoleva toaga ühenduda
-        print("Pärast serverit")
-        try:
-            tahanteha = uus.recv(1024).decode("utf-8")
-            print("Tahan teha",tahanteha)
-            if tahanteha == "n" and len(serverid) >=1:
-                sulgemise_kontroll = uus.recv(1024).decode("utf-8")
-                print("Sulgemise kontroll", sulgemise_kontroll)
-                if sulgemise_kontroll == "":
-                    for i in range(len(kasutajanimed)):
-                        if kasutajanimed[i] == nimi:
-                            del (kasutajanimed[i])
-                elif sulgemise_kontroll == "/////TAGASI":
-                    määra_tuba(uus,addr,1,nimi)
-            elif tahanteha == "":
-                for i in range(len(kasutajanimed)):
-                    if kasutajanimed[i] == nimi:
-                        del (kasutajanimed[i])
-            elif tahanteha == "/////TAGASI":
-                for i in range(len(kasutajanimed)):
-                    if kasutajanimed[i] == nimi:
-                        del (kasutajanimed[i])
-                määra_tuba(uus,addr,0,"")
-            else:  # Kui kasutaja soovib teha tuba, käivita uue toa funktsioon server()
-                print("Siia saime")
+        tahanteha = uus.recv(1024).decode("utf-8")
+        if tahanteha == "n" and len(serverid) >= 1:
+            uus.send(bytes("y", "utf-8"))
+            uus.send(bytes(str(serverid), "utf-8"))
+            sulgemise_kontroll = uus.recv(1024).decode("utf-8")
+            if sulgemise_kontroll == "":
+                del peasocketid[nimi]
+                puhasta_järjend(kasutajanimed, nimi)
+            elif sulgemise_kontroll == "/////TAGASI":
+                määra_tuba(uus, addr, 1, nimi)
+
+        elif tahanteha == "":
+            del peasocketid[nimi]
+            puhasta_järjend(kasutajanimed, nimi)
+        elif tahanteha == "/////TAGASI":
+            puhasta_järjend(kasutajanimed, nimi)
+            määra_tuba(uus, addr, 0, "")
+        else:  # Kui kasutaja soovib teha tuba, käivita uue toa funktsioon server()
+            while True:
                 try:
-                    serv_saab = uus.recv(1024).decode("utf-8")
-                    if serv_saab == "/////TAGASI":
-                        print("saime siia")
+                    serv_nimi = uus.recv(1024).decode("utf-8")
+                    if serv_nimi == "/////TAGASI":
                         määra_tuba(uus, addr, 1, nimi)
-                    elif serv_saab == "y":  # Kui kliendilt saabub tühi sõne, siis on klient järelikult oma akna sulgenud.
-                        servnimi = uus.recv(1024).decode("utf-8")
+                        break
+                    if serv_nimi == "":
+                        del peasocketid[nimi]
+                        puhasta_järjend(kasutajanimed, nimi)
+                        break
+                    if serv_nimi in list(serverid):
+                        uus.send(bytes("n", "utf-8"))
+                    else:
+                        uus.send(bytes("y", "utf-8"))
                         port = leia_port()
                         uus.send(bytes(str(port), "utf-8"))
-                        serverid[servnimi] = port
-                        server(port, servnimi, nimi)
-                    else:
-                        for i in range(len(kasutajanimed)):
-                            if kasutajanimed[i] == nimi:
-                                del (kasutajanimed[i])
-                except ConnectionResetError:
-                    for i in range(len(kasutajanimed)):
-                        if kasutajanimed[i] == nimi:
-                            del (kasutajanimed[i])
-        except ConnectionAbortedError: #Kui kasutaja akna sulgeb, mine eluga edasi
-            for i in range(len(kasutajanimed)):
-                if kasutajanimed[i] == nimi:
-                    del(kasutajanimed[i])
-    except ConnectionAbortedError:  # Kui kasutaja akna sulgeb, mine eluga edasi
-        for i in range(len(kasutajanimed)):
-            if kasutajanimed[i] == nimi:
-                del (kasutajanimed[i])
-                break
+                        serverid[serv_nimi] = port
+                        server(port, serv_nimi, nimi)
+                        break
+                except ConnectionError:
+                    del peasocketid[nimi]
+                    puhasta_järjend(kasutajanimed, nimi)
+
+    except ConnectionError: #Kui kasutaja akna sulgeb, mine eluga edasi
+        del peasocketid[nimi]
+        puhasta_järjend(kasutajanimed, nimi)
 
 def uus_klient():
     (uus, addr) = main.accept() #Võta vastu uus ühendus

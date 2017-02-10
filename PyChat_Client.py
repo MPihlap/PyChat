@@ -223,16 +223,23 @@ def uustuba(raam, pearaam): #juhul kui kasutaja teeb uue toa
             sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection)) #seob funktsiooni enteri klahvile
             sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
+            def takistus():
+                if sys.exit():
+                    pass
+
             def valikukontroll(valikud, valik):
                 valiknupp.configure(state=NORMAL)
+                tagasinupp.configure(state=NORMAL)
+                sisendnupp.configure(state=NORMAL)
                 valikud.destroy()
 
                 return valik
 
-
             def valikuaken(valik):
 
                 valiknupp.configure(state=DISABLED)
+                tagasinupp.configure(state=DISABLED)
+                sisendnupp.configure(state=DISABLED)
 
                 valikud=Tk()
                 valikud.title("Valikud")
@@ -241,17 +248,20 @@ def uustuba(raam, pearaam): #juhul kui kasutaja teeb uue toa
                 valikud.focus_force()
 
 
-                värvinupp = ttk.Button(valikud, text="Teksti värv", command=lambda: värv(valikud))
+                värvinupp = ttk.Button(valikud, text="Teksti värv", command=lambda: värv(valikud), width=20)
                 värvinupp.grid(row=0, column=0, padx=10, pady=5, sticky=(W, E))
 
                 helinupp = ttk.Checkbutton(valikud, text="Heli", variable=valik)
 
-                helinupp.grid(row=1, column=0, padx=10, pady=5)
+                helinupp.grid(row=0, column=1, padx=10, pady=5)
 
                 valikutagasinupp=ttk.Button(valikud, text="Sulge", command=lambda: valikukontroll(valikud, valik))
-                valikutagasinupp.grid(row=2, column=0, pady=10)
+                valikutagasinupp.grid(row=1, column=0, pady=10, sticky=(W, E),columnspan=2, padx=10)
 
                 valikud.protocol("WM_DELETE_WINDOW", lambda: valikukontroll(valikud, valik))
+                raam.protocol("WM_DELETE_WINDOW", takistus)
+
+
 
             valik = IntVar()
             valik.set(1)
@@ -397,8 +407,14 @@ def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toa
         sisendnupp = ttk.Button(tekstiraam, text="Saada", command=lambda: kirjuta(connection))
         sisendnupp.grid(column=0, row=2, padx=5, sticky=(W), pady=5)
 
+        def takistus():
+            if sys.exit():
+                pass
+
         def valikukontroll(valikud, valik):
             valiknupp.configure(state=NORMAL)
+            tagasinupp.configure(state=NORMAL)
+            sisendnupp.configure(state=NORMAL)
             valikud.destroy()
 
             return valik
@@ -406,6 +422,8 @@ def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toa
         def valikuaken(valik):
 
             valiknupp.configure(state=DISABLED)
+            tagasinupp.configure(state=DISABLED)
+            sisendnupp.configure(state=DISABLED)
 
             valikud = Tk()
             valikud.title("Valikud")
@@ -413,16 +431,18 @@ def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toa
             valikud.wm_attributes("-topmost", 1)
             valikud.focus_force()
 
-            värvinupp = ttk.Button(valikud, text="Teksti värv", command=lambda: värv(valikud))
+            värvinupp = ttk.Button(valikud, text="Teksti värv", command=lambda: värv(valikud), width=20)
             värvinupp.grid(row=0, column=0, padx=10, pady=5, sticky=(W, E))
 
-            helinupp = ttk.Checkbutton(valikud, text="Heli", variable=valik, state=ACTIVE)
-            helinupp.grid(row=1, column=0, padx=10, pady=5)
+            helinupp = ttk.Checkbutton(valikud, text="Heli", variable=valik)
+
+            helinupp.grid(row=0, column=1, padx=10, pady=5)
 
             valikutagasinupp = ttk.Button(valikud, text="Sulge", command=lambda: valikukontroll(valikud, valik))
-            valikutagasinupp.grid(row=2, column=0, pady=10)
+            valikutagasinupp.grid(row=1, column=0, pady=10, sticky=(W, E), columnspan=2, padx=10)
 
             valikud.protocol("WM_DELETE_WINDOW", lambda: valikukontroll(valikud, valik))
+            raam.protocol("WM_DELETE_WINDOW", takistus)
 
         valik = IntVar()
         valik.set(1)
@@ -430,9 +450,8 @@ def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toa
         valiknupp = ttk.Button(tekstiraam, text="Valikud", command=lambda: valikuaken(valik))
         valiknupp.grid(row=2, column=0, padx=5, pady=5)
 
-        tagasinupp = ttk.Button(tekstiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,2,connection))
+        tagasinupp = ttk.Button(tekstiraam, text="Tagasi",command=lambda: tagasi(raam, chatiruum, server, 2, connection))
         tagasinupp.grid(row=2, column=0, padx=5, pady=5, sticky=E)
-
 
         #eraldi thread loe funktsiooni jaoks, et saaks pidevalt andmeid vastu võtta
         thread1 = Thread(target=lambda: loe(connection,tuba))

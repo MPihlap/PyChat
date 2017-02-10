@@ -25,7 +25,7 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
             for i in socketid: #Moodustatakse järjend kasutajatest ja antakse ühendunutele teada, et on uus ühenduja
                 kasutajad.append(i)
                 try:
-                    socketid[i].send(bytes(nimi + " liitus vestlusega!", "utf-8"))
+                    socketid[i].send(bytes(nimi + " liitus vestlusega!\n", "utf-8"))
                 except ConnectionError: #Kui mõni kasutaja ei ole enam ühendunud, asendatakse socketi info sõnega
                     socketid[i] = "PUUDUB"
                     del peasocketid[i]
@@ -42,7 +42,7 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
             socketid[nimi] = uus
 
     (uus, addr) = s.accept() #Lisame toa looja andmed järjenditesse
-    uus.send(bytes('Tere tulemast vestlusesse "' + servnimi + '"', "utf-8"))
+    uus.send(bytes('Tere tulemast vestlusesse "' + servnimi + '"\n', "utf-8"))
     socketid[algatajanimi] = uus
 
     kuula_thread = Thread(target=uus_ühendus) #Käivitame lõime, mis lisab uusi ühendujaid vestlusesse
@@ -63,7 +63,7 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
                         socketid[i].send(bytes("/////TAGASI","utf-8"))
                         for n in list(socketid):
                             try:  # Anname märku, et keegi on vestlusest lahkunud
-                                socketid[n].send(bytes(i + " lahkus vestlusest!", "utf-8"))
+                                socketid[n].send(bytes(i + " lahkus vestlusest!\n", "utf-8"))
                             except ConnectionError:
                                 pass
 
@@ -86,7 +86,7 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
                     puhasta_järjend(kasutajanimed, i)
                     for n in list(socketid):
                         try: # Anname märku, et keegi on vestlusest lahkunud
-                            socketid[n].send(bytes(i + " lahkus vestlusest!", "utf-8"))
+                            socketid[n].send(bytes(i + " lahkus vestlusest!\n", "utf-8"))
                         except AttributeError:
                             pass
         while "PUUDUB" in socketid.values(): #Korrastame socketite ja ühenduste järjendi

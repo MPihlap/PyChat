@@ -88,7 +88,7 @@ def menu():
 
 
 s = socket()
-serv = "172.19.24.127"
+serv = "52.174.33.64"
 host = gethostname()
 port = 12345
 server = create_connection((serv, port))

@@ -160,7 +160,7 @@ def uustuba(raam, pearaam): #juhul kui kasutaja teeb uue toa
                             helivalik=valik.get()
                             print(helivalik)
                             if sisendkast == sisendkast.focus_get() or sõnum=='Tere tulemast vestlusesse "' + serv_nimi + '"': #juhul kui ei ole fokuseeritud
-                                textbox.insert(INSERT, sõnum)
+                                textbox.insert(INSERT,aeg+" "+sõnum)
                             else:
                                 if helivalik == 1:
                                     Beep(440, 150)  # teeb heli
@@ -345,7 +345,7 @@ def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toa
                     else:
                         helivalik = valik.get()
                         if sisendkast == sisendkast.focus_get() or 'Tere tulemast vestlusesse "' + serv_nimi + '"' in sõnum[:28+len(sõnum)]:  # juhul kui ei ole fokuseeritud
-                            textbox.insert(INSERT, sõnum)
+                            textbox.insert(INSERT,aeg+" "+sõnum)
                         else:
                             if helivalik==1:
                                 Beep(440, 150)  # teeb heli

@@ -153,7 +153,6 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
                 puhasta_järjend(kasutajanimed, nimi)
             elif sulgemise_kontroll == "/////TAGASI":
                 määra_tuba(uus, addr, 1, nimi)
-
         elif tahanteha == "":
             del peasocketid[nimi]
             puhasta_järjend(kasutajanimed, nimi)
@@ -161,6 +160,9 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
             puhasta_järjend(kasutajanimed, nimi)
             määra_tuba(uus, addr, 0, "")
         else:  # Kui kasutaja soovib teha tuba, käivita uue toa funktsioon server()
+            if tahanteha == "n":
+                uus.send(bytes("n","utf-8"))
+                tahanteha = uus.recv(1024).decode("utf-8")
             while True:
                 try:
                     serv_nimi = uus.recv(1024).decode("utf-8")

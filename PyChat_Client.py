@@ -88,7 +88,8 @@ def menu():
 
 
 s = socket()
-serv = "52.174.33.64"
+
+serv = "172.19.24.127"
 host = gethostname()
 port = 12345
 server = create_connection((serv, port))
@@ -269,9 +270,6 @@ def uustuba(raam, pearaam): #juhul kui kasutaja teeb uue toa
 def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toaga liituda
     server.send(bytes("n","utf-8"))
     kas_saab = server.recv(1024).decode("utf-8")
-    uued_toad = eval(server.recv(1024).decode("utf-8"))
-    toa_nimed = list(uued_toad)
-    toanimed = str(toa_nimed).strip("[]")
 
     if kas_saab != "y": #juhul kui tube pole, läheb uustoa funktsiooni
         global poletuba_silt
@@ -279,6 +277,9 @@ def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toa
         uustuba(raam, pearaam)
 
     else:
+        uued_toad = eval(server.recv(1024).decode("utf-8"))
+        toa_nimed = list(uued_toad)
+        toanimed = str(toa_nimed).strip("[]")
         pearaam.destroy()
 
         nimiraam = Frame()

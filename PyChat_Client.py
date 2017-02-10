@@ -88,8 +88,11 @@ def menu():
 
 
 s = socket()
-
-serv = "172.19.24.127"
+f = open("config.txt")
+serv_ip = f.readline().split("=")
+f.close()
+print(serv_ip)
+serv = "52.174.33.64"
 host = gethostname()
 port = 12345
 server = create_connection((serv, port))
@@ -303,7 +306,7 @@ def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toa
         niminupp = ttk.Button(nimiraam, text="Sisene", command=lambda: chatituba("<Return>"))
         niminupp.grid(row=4, column=0, padx=5,pady=2, sticky=(W, E))
 
-        tagasinupp = ttk.Button(nimiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, "",1,""))
+        tagasinupp = ttk.Button(nimiraam, text="Tagasi", command=lambda: tagasi(raam, chatiruum, server,1,""))
         tagasinupp.grid(row=5, column=0, padx=5, pady=2, sticky=(W, E))
 
     def chatituba(event):

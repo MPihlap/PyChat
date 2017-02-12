@@ -89,10 +89,9 @@ def menu():
 
 s = socket()
 f = open("config.txt")
-serv_ip = f.readline().split("=")
+serv = f.readline().split("=")[1].strip()
 f.close()
-print(serv_ip)
-serv = "52.174.33.64"
+#serv = "52.174.33.64"
 host = gethostname()
 port = 12345
 server = create_connection((serv, port))

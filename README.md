@@ -1,5 +1,5 @@
 # utChat
-# NB! utChat only works on Windows
+## NB! utChat only works on Windows
 
 To use utChat as a client, download utChat_Client, run the program and follow the prompts on screen
 
@@ -9,4 +9,4 @@ To host a remote utChat server, open *at least* the ports 12345-12346
 Each chatroom uses a different port, so if you need more than one, you need to open more ports 12346+
 The clients need your external ip to connect to the server
 
-## Happy chatting!
+### Happy chatting!

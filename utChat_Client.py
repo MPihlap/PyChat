@@ -16,7 +16,7 @@ def sulgemine():  # Kontrollib sulgemist
     if messagebox.askokcancel("Sulge", "Oled kindel, et tahad programmi sulgeda?"):
         sys.exit()
 
-def tagasi(raam, eelmine_leht, chatserv, n, socket):
+def tagasi(raam, eelmine_leht, chatserv, n, socket): #Funktsioon, mis haldab Tagasi nuppude tööd vastavalt olukorrale
     try:
         raam.destroy()
     except:
@@ -87,8 +87,8 @@ def menu():
     raam.mainloop()
 
 
-s = socket()
-f = open("config.txt")
+s = socket() #Loome socketi
+f = open("config.txt")  #Loeme configist master serveri ip
 serv = f.readline().split("=")[1].strip()
 f.close()
 #serv = "52.174.33.64"
@@ -289,7 +289,7 @@ def olemastuba(raam, server, pearaam): #juhul kui kasutaja tahab olemasoleva toa
         uustuba(raam, pearaam)
 
     else:
-        uued_toad = eval(server.recv(1024).decode("utf-8"))
+        uued_toad = eval(server.recv(1024).decode("utf-8")) #Võtab vastu olemasolevate tubade sõnastiku
         toa_nimed = list(uued_toad)
         toanimed = str(toa_nimed).strip("[]")
         pearaam.destroy()

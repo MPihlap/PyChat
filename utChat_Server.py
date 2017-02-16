@@ -20,7 +20,7 @@ def server(port,servnimi,algatajanimi): #Siit algab iga eraldi chatroom
     def uus_ühendus(): #Siin tegeletakse iga uue inimesega, kes ühendub selle toaga
         while True:
             (uus, addr) = s.accept()
-            nimi = uus.recv(1024).decode("utf-8")
+            nimi = uus.recv(1024).decode("utf-8") #Võetakse vastu kliendi kasutajanimi
             kasutajad = []
             for i in socketid: #Moodustatakse järjend kasutajatest ja antakse ühendunutele teada, et on uus ühenduja
                 kasutajad.append(i)
@@ -119,7 +119,7 @@ print(mainhostname, mainhost)
 mainport = 12345
 main.bind((mainhost, mainport))
 main.listen(5)
-peasocketid = {}
+peasocketid = {} #Loome sõnastiku, kus hoitakse main serveriga liitunud socketeid
 
 serverid = {} #Loome sõnastiku, millesse hakkame lisama tubade nimesid koos vastavate portidega
 kasutajanimed = [] #Loome järjendi, kuhu paneme kasutajanimed, et nimed ei korduks
@@ -132,7 +132,7 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
                 nimi = uus.recv(1024).decode("utf-8") #Võta vastu kliendi valitud kasutajanimi
             except ConnectionResetError:
                 break
-            if nimi in kasutajanimed:
+            if nimi in kasutajanimed: #Kui nimi on võetud, nõua uut katset
                 uus.send(bytes("n","utf-8"))
             else:
                 uus.send(bytes("y","utf-8"))
@@ -143,15 +143,15 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
         nimi = kasutajanimi
 
     try:
-        tahanteha = uus.recv(1024).decode("utf-8")
+        tahanteha = uus.recv(1024).decode("utf-8") #Kliendi otsus toa tegemise soovi kohta
         if tahanteha == "n" and len(serverid) >= 1:
             uus.send(bytes("y", "utf-8"))
             uus.send(bytes(str(serverid), "utf-8"))
-            sulgemise_kontroll = uus.recv(1024).decode("utf-8")
-            if sulgemise_kontroll == "":
+            sulgemise_kontroll = uus.recv(1024).decode("utf-8") #Serverile saadetakse teatud sõnum veendumaks, et klient pole vahepeal akent sulgenud
+            if sulgemise_kontroll == "": #Kui vastuseks on tühi sõne, siis on klient akna sulgenud
                 del peasocketid[nimi]
                 puhasta_järjend(kasutajanimed, nimi)
-            elif sulgemise_kontroll == "/////TAGASI":
+            elif sulgemise_kontroll == "/////TAGASI": #Kui klient vajutas Tagasi nuppu, käivita funktsioon uuesti
                 määra_tuba(uus, addr, 1, nimi)
         elif tahanteha == "":
             del peasocketid[nimi]
@@ -159,11 +159,11 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
         elif tahanteha == "/////TAGASI":
             puhasta_järjend(kasutajanimed, nimi)
             määra_tuba(uus, addr, 0, "")
-        else:  # Kui kasutaja soovib teha tuba, käivita uue toa funktsioon server()
-            if tahanteha == "n":
+        else:  # Kui kasutaja soovib teha tuba või kui pole tube, millega liituda, käivita uue toa funktsioon server()
+            if tahanteha == "n": #Kui klient tahab teha uut, aga see ei ole võimalik, saada vastav sõnum
                 uus.send(bytes("n","utf-8"))
                 tahanteha = uus.recv(1024).decode("utf-8")
-            while True:
+            while True: #Küsib serveri nime ja kontrollib, kas see on kasutuses
                 try:
                     serv_nimi = uus.recv(1024).decode("utf-8")
                     if serv_nimi == "/////TAGASI":
@@ -175,7 +175,7 @@ def määra_tuba(socket,aadress, n, kasutajanimi): #Tegeleb uute klientide otsim
                         break
                     if serv_nimi in list(serverid):
                         uus.send(bytes("n", "utf-8"))
-                    else:
+                    else: #Kui ei ole kasutuses ja klient ei taha tagasi minna, leia vaba port, käivita uus tuba ja saada kliendile port
                         uus.send(bytes("y", "utf-8"))
                         port = leia_port()
                         uus.send(bytes(str(port), "utf-8"))
